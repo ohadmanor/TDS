@@ -1,0 +1,60 @@
+﻿<Window x:Class="TDSClient.Forms.frmRouteActivityRouting"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:globalres="clr-namespace:TDSClient.Properties"
+        xmlns:tool="http://schemas.xceed.com/wpf/xaml/toolkit"
+        
+        Title="frmRouteActivityRouting" Height="510" Width="416" FontSize="11" FontFamily="Global User Interface" Loaded="Window_Loaded" Unloaded="Window_Unloaded" ResizeMode="NoResize" ShowInTaskbar="False">
+    <Grid>
+        <Label Content="{x:Static globalres:Resources.strSourcePoint}" Height="26" HorizontalAlignment="Left" VerticalAlignment="Top" Width="145" Margin="0,52,0,0"/>
+        <Label Content="{x:Static globalres:Resources.strTargetPoint}" Height="26" HorizontalAlignment="Left" Margin="0,90,0,0" VerticalAlignment="Top" Width="77"/>
+        <Label Content="X:" Height="26" HorizontalAlignment="Left" Margin="159,72,0,0" VerticalAlignment="Top" Width="21"/>
+        <Label Content="Y:" Height="26" HorizontalAlignment="Left" Margin="302,72,0,0" VerticalAlignment="Top" Width="21"/>
+        <Label Content="X:" Height="26" HorizontalAlignment="Left" Margin="159,106,0,0" VerticalAlignment="Top" Width="21"/>
+        <Label Content="Y:" Height="26" HorizontalAlignment="Left" Margin="302,106,0,0" VerticalAlignment="Top" Width="21"/>
+        <TextBox HorizontalAlignment="Left" Name="txtSourceX" Height="22" Margin="182,72,0,0" IsReadOnly="True" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="67"/>
+        <TextBox HorizontalAlignment="Left" Name="txtSourceY" Height="22" Margin="325,72,0,0" IsReadOnly="True" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="67"/>
+        <TextBox HorizontalAlignment="Left" Name="txtTargetX" Height="22" Margin="182,106,0,0" IsReadOnly="True" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="67"/>
+        <TextBox HorizontalAlignment="Left" Name="txtTargetY" Height="22" Margin="325,106,0,0" IsReadOnly="True" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="67"/>
+        <Button Content="{x:Static globalres:Resources.strTargetPoint}"  Height="20" HorizontalAlignment="Left" Margin="178,382,0,4" x:Name="cmdClearAutoRoute" VerticalAlignment="Top" Width="46" Click="cmdClearAutoRoute_Click" Visibility="Hidden" />
+        <Button Content="{x:Static globalres:Resources.strRoute}" HorizontalAlignment="Left" Margin="231,446,0,0" x:Name="cmdRoute" Width="46" Click="cmdRoute_Click" Height="20" VerticalAlignment="Top" />
+        <CheckBox Content="{x:Static globalres:Resources.strMarkOnTheMap}" Height="17" Margin="6,74,0,0" x:Name="checkBoxMapSource" VerticalAlignment="Top"  HorizontalAlignment="Left" Width="128" Checked="checkBoxMapSource_Checked" />
+        <CheckBox Content="{x:Static globalres:Resources.strMarkOnTheMap}" Height="17" Margin="6,108,0,0" x:Name="checkBoxMapTarget" VerticalAlignment="Top"  HorizontalAlignment="Left" Width="128" Checked="checkBoxMapTarget_Checked" />
+        <DataGrid x:Name="dtGridRoute" Margin="2,154,0,0" Background="Transparent"  RowBackground="Transparent" Height="106" VerticalAlignment="Top" HorizontalAlignment="Left" Width="314" PreparingCellForEdit="dtGridRoute_PreparingCellForEdit" SelectionChanged="dtGridRoute_SelectionChanged"/>
+
+        <Button Height="20" Margin="328,160,0,0" x:Name="cmdNew" VerticalAlignment="Top" HorizontalAlignment="Left" 
+        	Width="66" Click="cmdNew_Click" Content="{x:Static globalres:Resources.strbtnNew}" />
+        <Button  Margin="328,208,0,0" x:Name="cmdDelete" HorizontalAlignment="Left" Width="66"
+        	Content="{x:Static globalres:Resources.strbtnDelete}" Click="cmdDelete_Click" Height="20" VerticalAlignment="Top"/>
+
+        <Label Content="{x:Static globalres:Resources.strIntermediatepoints}" HorizontalAlignment="Left" Height="26" Margin="0,129,0,0" VerticalAlignment="Top" Width="293"/>
+        <CheckBox Content="{x:Static globalres:Resources.strHighLevelRoad}" Name="chkCarMostImportant" HorizontalAlignment="Left" Height="17" Margin="10,279,0,0" VerticalAlignment="Top" Width="239"/>
+        <CheckBox Content="{x:Static globalres:Resources.strMediumLevelRoad}" x:Name="chkCarMediumImportant" HorizontalAlignment="Left" Height="17" Margin="10,297,0,0" VerticalAlignment="Top" Width="239"/>
+        <CheckBox Content="{x:Static globalres:Resources.strLowLevelRoad}"    x:Name="chkCarLowImportant"    HorizontalAlignment="Left" Height="17" Margin="10,316,0,0" VerticalAlignment="Top" Width="267"/>
+        <CheckBox Content="{x:Static globalres:Resources.strUnderConstruction}" x:Name="chkConstruction" HorizontalAlignment="Left" Height="17" Margin="10,335,0,0" VerticalAlignment="Top" Width="267"/>
+
+        <TextBlock  TextWrapping="Wrap" Height="16" HorizontalAlignment="Left" Margin="3,8,0,0"
+        	x:Name="textBlockRouteName" VerticalAlignment="Top" Width="79"  Text="{x:Static globalres:Resources.strRouteName}"/>
+        <TextBox Height="20" Margin="87,6,0,0" x:Name="txtRouteName" VerticalAlignment="Top" HorizontalAlignment="Left" Width="236" />
+
+        <TextBlock  TextWrapping="Wrap" Height="16" HorizontalAlignment="Left" Margin="3,29,0,0"
+        	x:Name="textBlockRouteName_Copy" VerticalAlignment="Top" Width="79"  Text="{x:Static globalres:Resources.strPlatformName}"/>
+
+        <TextBox Height="20" Margin="87,30,0,0" x:Name="txPlatformName" VerticalAlignment="Top" HorizontalAlignment="Left" Width="236" />
+
+        <Button Margin="294,446,0,0" x:Name="cmdExit" Click="cmdExit_Click" Content="{x:Static globalres:Resources.strSaveAndExit}" 
+        	Height="20" VerticalAlignment="Top" HorizontalAlignment="Left" Width="93"/>
+        <Label Content="{x:Static globalres:Resources.strRoadsFilter}" HorizontalAlignment="Left" Height="26" Margin="0,259,0,0" VerticalAlignment="Top" Width="293"/>
+        <Button Height="20" Margin="328,184,0,0" x:Name="cmdInsert" VerticalAlignment="Top" HorizontalAlignment="Left" 
+        	Width="66"  Content="{x:Static globalres:Resources.strbtnInsert}" Click="cmdInsert_Click" />
+        <tool:TimeSpanUpDown Margin="96,358,0,0"  Name="startActivity" FractionalSecondsDigitsCount="0"  Width="75" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+        <tool:TimeSpanUpDown Margin="269,359,0,0"  x:Name="durationActivity" FractionalSecondsDigitsCount="0" Width="75" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+        <Label Content="{x:Static globalres:Resources.strStartActivity}" HorizontalAlignment="Left" Margin="10,359,0,0" VerticalAlignment="Top" Width="107"/>
+        <Label Content="{x:Static globalres:Resources.strDuration}" HorizontalAlignment="Left" Margin="203,360,0,0" VerticalAlignment="Top" Width="63"/>
+        <Label Content="+" HorizontalAlignment="Left" Margin="79,359,0,0" VerticalAlignment="Top" Width="17"/>
+        <tool:IntegerUpDown Margin="96,387,0,0" Increment="1" Minimum="0"  Maximum="200" FormatString="N" Height="24" Name="speedUpDown" HorizontalAlignment="Left" Width="75" VerticalAlignment="Top"/>
+        <Label Content="{x:Static globalres:Resources.strGridHeaderSpeedKmh}" HorizontalAlignment="Left" Margin="10,386,0,0" VerticalAlignment="Top" Width="81"/>
+       
+
+    </Grid>
+</Window>

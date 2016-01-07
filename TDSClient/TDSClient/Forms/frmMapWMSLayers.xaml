@@ -1,0 +1,27 @@
+﻿<Window x:Class="TDSClient.Forms.frmMapWMSLayers"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="frmMapWMSLayers" Height="417" Width="540" FontFamily="Global User Interface" FontSize="11" ResizeMode="NoResize">
+    <Grid>
+        <DataGrid Background="Transparent" Height="306" Margin="4,0,59.6,0" Name="dataGridLayerName" RowBackground="Transparent" VerticalAlignment="Top"  />
+
+        <Button Background="Transparent"  Margin="0,37,9,0" Click="cmdUp_Click" Name="cmdUp" Height="37" VerticalAlignment="Top" HorizontalAlignment="Right" Width="42">
+            <Image Height="25" HorizontalAlignment="Stretch" Source="pack://application:,,,/images/UpIcon.png" VerticalAlignment="Stretch" Width="39" />
+        </Button>
+
+        <Button Background="Transparent" Margin="0,74,9,0" Click="cmdDown_Click" Name="cmdDown" Height="37" VerticalAlignment="Top" HorizontalAlignment="Right" Width="42">
+            <Image Height="25"  HorizontalAlignment="Stretch"   Source="pack://application:,,,/images/DownIcon.png" Width="39" />
+        </Button>
+        <Button Content="OK" HorizontalAlignment="Left" Margin="466,0,0,9" Click="buttonOK_Click" x:Name="buttonOK" Width="55" Height="20" VerticalAlignment="Bottom"  />
+        <Button Height="20" HorizontalAlignment="Left" Margin="316,0,0,7.2" Click="cmdSaveUser_Click" x:Name="cmdSaveUser" VerticalAlignment="Bottom" Width="55" >
+            <Image Source="pack://application:,,,/images/user.png" />
+        </Button>
+        <Label ClipToBounds="True" Content="SavetoCurrentUser" Height="23" HorizontalAlignment="Left" Margin="196,0,0,6.2" x:Name="lblSaveUser" VerticalAlignment="Bottom" Width="124" />
+        <Slider HorizontalAlignment="Left" Margin="10,319,0,0" Maximum="1" x:Name="trackTransparant" TickFrequency="0.1" TickPlacement="BottomRight" Width="274" Height="25" VerticalAlignment="Top" ValueChanged="trackTransparant_ValueChanged" />
+        <Label ClipToBounds="True" Content="Transparency" Height="23" HorizontalAlignment="Left" Margin="10,283,0,0" x:Name="label1" VerticalAlignment="Top" Width="82" />
+        <Button x:Name="btnRefresh" HorizontalAlignment="Right" Height="29" Margin="0,229,9,0" VerticalAlignment="Top" Width="42" Click="btnRefresh_Click" >
+            <Image  Source="pack://application:,,,/images/Button_Refresh_Icon_32.png"    />
+        </Button>
+
+    </Grid>
+</Window>
