@@ -245,4 +245,88 @@
     <value>Delete</value>
     <comment>Delete</comment>
   </data>
+  <data name="strName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Name</comment>
+  </data>
+  <data name="strRoadPlanning" xml:space="preserve">
+    <value>Road Planning</value>
+    <comment>Road Planning</comment>
+  </data>
+  <data name="strbtnCancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Cancel</comment>
+  </data>
+  <data name="strbtnExit" xml:space="preserve">
+    <value>Exit</value>
+    <comment>Exit</comment>
+  </data>
+  <data name="strPlatforms" xml:space="preserve">
+    <value>Platforms</value>
+    <comment>Platforms</comment>
+  </data>
+  <data name="strUndeploy" xml:space="preserve">
+    <value>Undeploy</value>
+    <comment>Undeploy</comment>
+  </data>
+  <data name="strActivites" xml:space="preserve">
+    <value>Activities</value>
+    <comment>Activities</comment>
+  </data>
+  <data name="strbtnSelect" xml:space="preserve">
+    <value>Select</value>
+    <comment>Select</comment>
+  </data>
+  <data name="lblX" xml:space="preserve">
+    <value>X:</value>
+    <comment>X:</comment>
+  </data>
+  <data name="lblY" xml:space="preserve">
+    <value>Y:</value>
+    <comment>Y:</comment>
+  </data>
+  <data name="strActivity" xml:space="preserve">
+    <value>Activity</value>
+    <comment>Activity</comment>
+  </data>
+  <data name="strReferencePoint" xml:space="preserve">
+    <value>Reference Point</value>
+    <comment>Reference Point</comment>
+  </data>
+  <data name="strbtnEdit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Edit</comment>
+  </data>
+  <data name="strRoutes" xml:space="preserve">
+    <value>Routes</value>
+    <comment>Routes</comment>
+  </data>
+  <data name="strPlatform" xml:space="preserve">
+    <value>Platform</value>
+    <comment>Platform</comment>
+  </data>
+  <data name="strReferencePointMustbeFilled" xml:space="preserve">
+    <value>Reference Point Must be Filled</value>
+    <comment>Reference Point Must be Filled</comment>
+  </data>
+  <data name="strMove" xml:space="preserve">
+    <value>Move</value>
+    <comment>Move</comment>
+  </data>
+  <data name="strToolTipSearch" xml:space="preserve">
+    <value>Search</value>
+    <comment>Search</comment>
+  </data>
+  <data name="strbtnFind" xml:space="preserve">
+    <value>Find</value>
+    <comment>Find</comment>
+  </data>
+  <data name="strShowMe" xml:space="preserve">
+    <value>Show Me</value>
+    <comment>Show Me</comment>
+  </data>
+  <data name="strZoom" xml:space="preserve">
+    <value>Zoom</value>
+    <comment>Zoom</comment>
+  </data>
 </root>

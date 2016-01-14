@@ -43,22 +43,38 @@ namespace TDSServer
               {
                   clsGroundAtom refGroundAtom = keyVal.Value as clsGroundAtom;
 
-                  IEnumerable<GeneralActivityDTO> ActivitesDTO = TDS.DAL.ActivityDB.GetMovementActivitesByAtom(refGroundAtom.GUID);
+                  IEnumerable<GeneralActivityDTO> ActivitesDTO = TDS.DAL.ActivityDB.GetActivitesByAtom(refGroundAtom.GUID);
+
+                  if (ActivitesDTO == null) continue;
+
                   List<clsActivityBase> Activites=new List<clsActivityBase>();
                   foreach(GeneralActivityDTO dto in ActivitesDTO )
                   {
-                      clsActivityMovement MovementAct = new clsActivityMovement();
-                      MovementAct.ActivityType = enumActivity.MovementActivity;   
-                      MovementAct.ActivityId = dto.ActivityId;
-                      MovementAct.AtomGuid=refGroundAtom.GUID;
-                      MovementAct.AtomName = refGroundAtom.MyName;
-                      MovementAct.DurationActivity = dto.DurationActivity;
-                      MovementAct.RouteActivity = dto.RouteActivity;
-                      MovementAct.Speed = dto.Speed;
-                      MovementAct.StartActivityOffset = dto.StartActivityOffset;
-                      MovementAct.TimeFrom = Ex_clockDate.Add(MovementAct.StartActivityOffset);
-                      MovementAct.TimeTo = MovementAct.TimeFrom.Add(MovementAct.DurationActivity);
-                      Activites.Add(MovementAct);
+                      switch(dto.ActivityType)
+                      {
+                          case enumActivity.MovementActivity:
+
+                              clsActivityMovement MovementAct = new clsActivityMovement();
+                              MovementAct.ActivityType = enumActivity.MovementActivity;   
+                              MovementAct.ActivityId = dto.ActivityId;
+                              MovementAct.AtomGuid=refGroundAtom.GUID;
+                              MovementAct.AtomName = refGroundAtom.MyName;
+                              MovementAct.DurationActivity = dto.DurationActivity;
+                              MovementAct.RouteActivity = dto.RouteActivity;
+                              MovementAct.Speed = dto.Speed;
+                              MovementAct.StartActivityOffset = dto.StartActivityOffset;
+
+
+                              MovementAct.ReferencePoint = dto.ReferencePoint;
+
+                              MovementAct.TimeFrom = Ex_clockDate.Add(MovementAct.StartActivityOffset);
+                              MovementAct.TimeTo = MovementAct.TimeFrom.Add(TimeSpan.FromDays(365));          // MovementAct.TimeFrom.Add(MovementAct.DurationActivity);
+                              Activites.Add(MovementAct);
+
+                              break;
+                      }
+
+                      
                   }
                   m_GroundActivities.Add(refGroundAtom.GUID, Activites);
               }
@@ -67,17 +83,17 @@ namespace TDSServer
         {
             GroundAtomObjectCollection = new ConcurrentDictionary<string, AtomBase>();
             IEnumerable<AtomData> atoms = TDS.DAL.AtomsDB.GetAllAtoms();
-            if (atoms != null)
+            if (atoms == null) return;
+            foreach(AtomData atom in atoms)
             {
-                foreach(AtomData atom in atoms)
-                {
-                    clsGroundAtom GroundAtom = new clsGroundAtom(this);
-                    GroundAtom.MyName = atom.UnitName;
-                    GroundAtom.GUID = atom.UnitGuid;
-                    GroundAtom.curr_X = atom.Location.x;
-                    GroundAtom.curr_Y = atom.Location.y;
-                    GroundAtomObjectCollection.TryAdd(GroundAtom.GUID, GroundAtom);
-                }
+                clsGroundAtom GroundAtom = new clsGroundAtom(this);
+                GroundAtom.MyName = atom.UnitName;
+                GroundAtom.GUID = atom.UnitGuid;
+                GroundAtom.curr_X = atom.Location.x;
+                GroundAtom.curr_Y = atom.Location.y;
+                GroundAtomObjectCollection.TryAdd(GroundAtom.GUID, GroundAtom);
+
+                m_GameManager.QuadTreeGroundAtom.PositionUpdate(GroundAtom);
             }
         }
 
@@ -107,15 +123,15 @@ namespace TDSServer
             TDS.DAL.ActivityDB.DeleteActivitesByAtomGuid(GroundAtom.GUID);
 
 
-            List<clsActivityBase> Activites = null;
-            m_GroundActivities.TryGetValue(GroundAtom.GUID, out Activites);
-            if(Activites!=null)
-            {
-                foreach (clsActivityBase Activity in Activites)
-                {
-                    TDS.DAL.RoutesDB.DeleteRouteByGuid(Activity.RouteActivity.RouteGuid);
-                }
-            }
+            //List<clsActivityBase> Activites = null;
+            //m_GroundActivities.TryGetValue(GroundAtom.GUID, out Activites);
+            //if(Activites!=null)
+            //{
+            //    foreach (clsActivityBase Activity in Activites)
+            //    {
+            //        TDS.DAL.RoutesDB.DeleteRouteByGuid(Activity.RouteActivity.RouteGuid);
+            //    }
+            //}
 
             m_GroundActivities.Remove(GroundAtom.GUID);
             TDS.DAL.AtomsDB.DeleteAtomByGuid(GroundAtom.GUID);
@@ -131,6 +147,164 @@ namespace TDSServer
             m_GameManager.NotifyClientsEndCycle(args);
 
         }
+
+        public void DeleteAtomFromTreeByGuid(string AtomGuid)
+        {
+            TDS.DAL.AtomsDB.DeleteAtomFromTreeByGuid(AtomGuid);
+
+            AtomBase GroundAtombase = null;
+            GroundAtomObjectCollection.TryGetValue(AtomGuid, out GroundAtombase);
+            if (GroundAtombase == null) return;
+
+            clsGroundAtom GroundAtom = GroundAtombase as clsGroundAtom;
+
+            m_GroundActivities.Remove(GroundAtom.GUID);
+            TDS.DAL.AtomsDB.DeleteAtomByGuid(GroundAtom.GUID);
+            GroundAtomObjectCollection.TryRemove(GroundAtom.GUID, out GroundAtombase);
+
+            NotifyClientsEndCycleArgs args = new NotifyClientsEndCycleArgs();
+            args = new NotifyClientsEndCycleArgs();
+            args.Transport2Client.Ex_clockDate = Ex_clockDate;
+            // args.Transport2Client.ExClockRatioSpeed = m_GameManager.ExClockRatioSpeed;
+            args.Transport2Client.AtomObjectType = 2;
+            args.Transport2Client.AtomObjectCollection = PrepareGroundCommonProperty();
+            args.Transport2Client.ManagerStatus = m_GameManager.ManagerStatus;
+            m_GameManager.NotifyClientsEndCycle(args);
+
+
+        }
+
+        public void DeleteActivityById(int ActivityId)
+        {
+            TDS.DAL.ActivityDB.DeleteActivityById(ActivityId);
+
+            foreach (KeyValuePair<string, List<clsActivityBase>> keyVal in m_GroundActivities)
+            {
+                List<clsActivityBase> Activities = keyVal.Value as List<clsActivityBase>;
+                List<clsActivityBase> ListToDelete = new List<clsActivityBase>();
+                foreach (clsActivityBase act in Activities)
+                {
+                    if (act.ActivityId == ActivityId)
+                    {
+                        ListToDelete.Add(act);
+                    }
+                }
+
+                foreach (clsActivityBase act in ListToDelete)
+                {
+                    Activities.Remove(act);
+                }
+            }
+
+        }
+
+        public void DeleteRouteByGuid(string RouteGuid)
+        {
+            TDS.DAL.RoutesDB.DeleteRouteByGuid(RouteGuid);
+
+            foreach (KeyValuePair<string, List<clsActivityBase>> keyVal in m_GroundActivities)
+            {
+                List<clsActivityBase> Activities = keyVal.Value as List<clsActivityBase>;
+                List<clsActivityBase> ListToDelete = new List<clsActivityBase>();
+                foreach (clsActivityBase act in Activities)
+                {
+                     if(act.RouteActivity.RouteGuid==RouteGuid)
+                     {
+                         ListToDelete.Add(act);
+                     }
+                }
+
+                foreach (clsActivityBase act in ListToDelete)
+                {
+                    Activities.Remove(act);
+                }
+            }
+        }
+
+        public IEnumerable<FormationTree> GetAllAtomsFromTree()
+        {
+            IEnumerable<FormationTree> formations = TDS.DAL.AtomsDB.GetAllAtomsFromTree();
+
+            if (formations!=null)
+            {
+                foreach (FormationTree formation in formations)
+                {
+                    formation.isDeployed = GroundAtomObjectCollection.ContainsKey(formation.GUID);
+
+                    IEnumerable<GeneralActivityDTO> Actityties = TDS.DAL.ActivityDB.GetActivitesByAtom(formation.GUID);
+                    if (Actityties != null && Actityties.Count() > 0)
+                    {
+                        formation.isActivityes = true;
+                    }
+                }
+
+            }
+          
+
+            return formations;
+        }
+
+        public AtomData DeployFormationFromTree(DeployedFormation deployFormation)
+        {
+
+            if (GroundAtomObjectCollection.ContainsKey(deployFormation.formation.GUID)) return null;
+
+
+
+            AtomData atom = new AtomData();
+            atom.Location = new DPoint(deployFormation.x, deployFormation.y);
+            atom.UnitGuid = deployFormation.formation.GUID;
+            atom.UnitName = deployFormation.formation.Identification;
+
+            TDS.DAL.AtomsDB.AddAtom(atom);
+
+
+
+
+            clsGroundAtom GroundAtom = new clsGroundAtom(this);
+            GroundAtom.MyName = atom.UnitName;
+            GroundAtom.GUID = atom.UnitGuid;
+            GroundAtom.curr_X = atom.Location.x;
+            GroundAtom.curr_Y = atom.Location.y;
+            GroundAtomObjectCollection.TryAdd(GroundAtom.GUID, GroundAtom);
+            m_GameManager.QuadTreeGroundAtom.PositionUpdate(GroundAtom);
+
+
+
+
+            NotifyClientsEndCycleArgs args = new NotifyClientsEndCycleArgs();
+            args = new NotifyClientsEndCycleArgs();
+            args.Transport2Client.Ex_clockDate = Ex_clockDate;
+            // args.Transport2Client.ExClockRatioSpeed = m_GameManager.ExClockRatioSpeed;
+            args.Transport2Client.AtomObjectType = 2;
+            args.Transport2Client.AtomObjectCollection = PrepareGroundCommonProperty();
+            args.Transport2Client.ManagerStatus = m_GameManager.ManagerStatus;
+            m_GameManager.NotifyClientsEndCycle(args);
+
+            return atom;
+        }
+
+        public void MoveGroundObject(DeployedFormation deployFormation)
+        {
+            TDS.DAL.AtomsDB.UpdateAtomPositionByGuid(deployFormation.formation.GUID, deployFormation.x, deployFormation.y);
+            AtomBase GroundAtom = null;
+            GroundAtomObjectCollection.TryGetValue(deployFormation.formation.GUID, out GroundAtom);
+            GroundAtom.curr_X = deployFormation.x;
+            GroundAtom.curr_Y = deployFormation.y;
+
+
+            NotifyClientsEndCycleArgs args = new NotifyClientsEndCycleArgs();
+            args = new NotifyClientsEndCycleArgs();
+            args.Transport2Client.Ex_clockDate = Ex_clockDate;
+            // args.Transport2Client.ExClockRatioSpeed = m_GameManager.ExClockRatioSpeed;
+            args.Transport2Client.AtomObjectType = 2;
+            args.Transport2Client.AtomObjectCollection = PrepareGroundCommonProperty();
+            args.Transport2Client.ManagerStatus = m_GameManager.ManagerStatus;
+            m_GameManager.NotifyClientsEndCycle(args);
+
+
+        }
+
         public void   RefreshActivity(GeneralActivityDTO ActivityDTO)
         {
             AtomBase GroundAtombase = null;
@@ -281,8 +455,11 @@ namespace TDSServer
                 structTransportCommonProperty CommonPropertyObject = new structTransportCommonProperty();
                 CommonPropertyObject.AtomClass = refGroundAtom.GetType().ToString();
                 CommonPropertyObject.AtomName = refGroundAtom.MyName;
+                CommonPropertyObject.GUID = refGroundAtom.GUID;
                 CommonPropertyObject.X = refGroundAtom.curr_X;
                 CommonPropertyObject.Y = refGroundAtom.curr_Y;
+
+                CommonPropertyObject.isCollision = refGroundAtom.isCollision;
 
                 TransportCommonProperty.Add(CommonPropertyObject);
                

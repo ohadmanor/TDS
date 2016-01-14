@@ -44,7 +44,7 @@ namespace TDSServer
                 //GlobalHost.Configuration.DisconnectTimeout = TimeSpan.FromSeconds(180);
 
 
-                GlobalHost.Configuration.DisconnectTimeout = TimeSpan.FromHours(2);
+             //   GlobalHost.Configuration.DisconnectTimeout = TimeSpan.FromHours(2);
 
                 GlobalHost.Configuration.DefaultMessageBufferSize = 50; //500;
 

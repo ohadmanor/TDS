@@ -95,16 +95,76 @@ namespace TDSServer.TDS.DAL
         public static Route GetRouteByName(string Name)
         {
             string sql = "select * from routes where route_name='" + Name + "'";
-            Route route = GetRouteBySql(sql);
+            Route route=null;
+            route = GetRouteBySql(sql);
+            if (route!=null)
+            {
+                route.Points = getRoutePoints(route.RouteGuid);
+            }
+
+          
             return route;
         }
         public static Route GetRouteByGuid(string RouteGuid)
         {
             string sql = "select * from routes where route_guid='" + RouteGuid + "'";
-            Route route = GetRouteBySql(sql);
-            route.Points = getRoutePoints(RouteGuid);
+            Route route = null;
+            route = GetRouteBySql(sql);
+            if (route != null)
+            {
+                route.Points = getRoutePoints(RouteGuid);
+            }
+           
             return route;
         }
+
+
+        public static IEnumerable<Route> getRoutes()
+        {         
+            try
+            {              
+
+                List<Route> Routes = null;
+                List<UserMapPreference> MapPreferenceList = new List<UserMapPreference>();
+                string sql = "select * from routes order by route_name";
+                using (NpgsqlConnection connection = new NpgsqlConnection(strPostGISConnection))
+                using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(sql, connection))
+                {
+                    DataSet ds = new DataSet();
+                    DataTable dt = new DataTable();
+                    ds.Reset();
+                    da.Fill(ds);
+                    dt = ds.Tables[0];
+
+                    if (dt.Rows.Count>0)
+                    {
+                        Routes = new List<Route>();
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            Route route = new Route();
+                            route.RouteName = row["route_name"].ToString();
+                            route.RouteGuid = row["route_guid"].ToString();
+                            route.Points = getRoutePoints(route.RouteGuid);
+                            Routes.Add(route);
+                        }
+                    }
+
+
+                    return Routes;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+
+            return null;
+
+        }
+
+
+
         public static void DeleteRouteByGuid(string RouteGuid)
         {
             string sql = string.Empty;
@@ -127,6 +187,16 @@ namespace TDSServer.TDS.DAL
                         command.Transaction = sqlTran;
                         int rows = command.ExecuteNonQuery();
                     }
+
+                    sql = "delete from Activites where route_guid='" + RouteGuid + "'";
+                    using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+                    {
+                        command.Transaction = sqlTran;
+                        int rows = command.ExecuteNonQuery();
+                    }
+
+
+
                     sqlTran.Commit();
                 }
                 catch (Exception ex)
@@ -257,6 +327,12 @@ namespace TDSServer.TDS.DAL
         public static CreateUserEnum SaveRoute(Route route)
         {
             string sql = string.Empty;
+
+            if (string.IsNullOrEmpty(route.RouteGuid)==true)
+            {
+                route.RouteGuid = Util.CretaeGuid().ToString();
+            }
+
             using (NpgsqlConnection connection = new NpgsqlConnection(strPostGISConnection))
             {
                 connection.Open();

@@ -38,6 +38,32 @@ namespace TDSServer
       
        
     }
+    public struct DAreaRect
+    {
+        public double minX;
+        public double maxX;
+        public double minY;
+        public double maxY;
+
+        public DAreaRect(double pMinX, double pMinY, double pMaxX, double pMaxY)
+        {
+            minX = pMinX;
+            maxX = pMaxX;
+            minY = pMinY;
+            maxY = pMaxY;
+        }
+
+        public bool Contains(double x, double y)
+        {
+            bool result = false;
+            if ((minX <= x) && (maxX >= x) && (minY <= y) && (maxY >= y)) result = true;
+            return result;
+        }
+
+
+
+
+    }
     public abstract class AtomBase
     {       
         public string MyName;       
@@ -48,13 +74,18 @@ namespace TDSServer
         public double curr_Y;
 
     }
-
+    public enum enumPlatformId
+    {
+        Undefined = 0,
+        GeneralHumans=1
+    }
 
     public sealed class structTransportCommonProperty
     {      
         public string AtomClass;      
         public string AtomName;      
-        public string TextValue;    
+        public string TextValue;
+        public string GUID = String.Empty;
         public bool isVirtualAtom;     
       //  public COLOR_SIDE CountryColorSide;     
         public double X;     
@@ -63,6 +94,7 @@ namespace TDSServer
       
         public ushort FontKey;       
         public ushort CountryId;
+        public bool isCollision;
 
 
     }
@@ -97,6 +129,15 @@ namespace TDSServer
         public string User;
         public UserMapPreference[] maps;
     }
+
+    public class UserParameters
+    {
+        public string User;
+        public int MapHomeZoom;
+	    public double MapHomeCenterX;
+        public double MapHomeCenterY;
+    }
+
 
     public sealed class typLegSector
     {        
@@ -185,12 +226,42 @@ namespace TDSServer
     {
         public double x;
         public double y;
+        public DPoint()
+        {
+        }
+        public DPoint(double x_,double y_)
+        {
+            x = x_;
+            y = y_;
+        }
     }
     public class Route
     {
         public string RouteName;
         public string RouteGuid;
         public IEnumerable<DPoint> Points;
+    }
+    //FormationTree
+    //AtomDTO
+    public class FormationTree
+    {
+     public string  Identification;
+	 public string  GUID;
+	 public string ParentGUID;
+	 public int CountryId;
+     public enumPlatformId PlatformCategoryId;
+	 public string PlatformType;
+     public int FormationTypeId;
+
+     public bool isDeployed;
+     public bool isActivityes;
+
+    }
+    public class DeployedFormation
+    {
+        public FormationTree formation;
+        public double x;
+        public double y;
     }
     public class AtomData
     {
@@ -206,13 +277,14 @@ namespace TDSServer
     public class GeneralActivityDTO
     {
         public int ActivityId;
+        public int Activity_SeqNumber;
         public AtomData Atom;
         public enumActivity ActivityType;
         public TimeSpan StartActivityOffset;
         public TimeSpan DurationActivity;
-        public int Speed;
+        public int Speed;       
         public Route RouteActivity;
-
+        public DPoint ReferencePoint;
     }
 
     public class clsActivityBase
@@ -227,6 +299,10 @@ namespace TDSServer
         public TimeSpan DurationActivity;
         public int Speed;
         public Route RouteActivity;
+        public DPoint ReferencePoint;
+
+
+
 
         public bool isActive = false;
         public bool isEnded = false;       

@@ -49,6 +49,7 @@
     <Reference Include="System" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Formatting, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
     <Reference Include="System.Xml" />
@@ -59,8 +60,9 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
-    <Reference Include="TerrainService">
-      <HintPath>..\..\..\SAG\GameService\TerrainService\bin\Debug\TerrainService.dll</HintPath>
+    <Reference Include="TerrainService, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Resources\TerrainService.dll</HintPath>
     </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
@@ -97,13 +99,35 @@
     </ApplicationDefinition>
     <Compile Include="clsRoadRoutingWebApi.cs" />
     <Compile Include="clsSelectTools.cs" />
+    <Compile Include="CursorHelper.cs" />
     <Compile Include="DataGridWPFUtility.cs" />
     <Compile Include="DelegateCommand.cs" />
+    <Compile Include="Forms\frmActivities.xaml.cs">
+      <DependentUpon>frmActivities.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmActivityEdit.xaml.cs">
+      <DependentUpon>frmActivityEdit.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmActorEdit.xaml.cs">
+      <DependentUpon>frmActorEdit.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmActorsList.xaml.cs">
+      <DependentUpon>frmActorsList.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Forms\frmMapWMSLayers.xaml.cs">
       <DependentUpon>frmMapWMSLayers.xaml</DependentUpon>
     </Compile>
     <Compile Include="Forms\frmRouteActivityRouting.xaml.cs">
       <DependentUpon>frmRouteActivityRouting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmRouteEditOSMRouting.xaml.cs">
+      <DependentUpon>frmRouteEditOSMRouting.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmRouteList.xaml.cs">
+      <DependentUpon>frmRouteList.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\frmSearchAtom.xaml.cs">
+      <DependentUpon>frmSearchAtom.xaml</DependentUpon>
     </Compile>
     <Compile Include="Properties\Resources.en-US.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -120,11 +144,39 @@
     <Compile Include="Utilites.cs" />
     <Compile Include="VMMainViewModel.cs" />
     <Compile Include="WMSProviderBase.cs" />
+    <Page Include="Forms\frmActivities.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmActivityEdit.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmActorEdit.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmActorsList.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Forms\frmMapWMSLayers.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Forms\frmRouteActivityRouting.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmRouteEditOSMRouting.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Forms\frmRouteList.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Forms\frmSearchAtom.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -230,6 +282,21 @@
   <ItemGroup>
     <Resource Include="images\flag_blue.png" />
     <Resource Include="images\flag_red.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="images\Iconset2Home.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="images\PanDrag.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="images\Sight.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\GlobalMapperUtil.dll" />
+    <Content Include="Resources\GlobalMapperUtil.pdb" />
+    <Content Include="Resources\TerrainService.dll" />
+    <Content Include="Resources\TerrainService.pdb" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

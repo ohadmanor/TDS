@@ -1,4 +1,4 @@
-
+﻿
 CREATE TABLE IF NOT EXISTS User_Maps(
 	user_guid varchar(50)  NOT NULL,
 	layer_order int  NOT NULL,
@@ -9,6 +9,16 @@ CREATE TABLE IF NOT EXISTS User_Maps(
 	centerY float NULL,
 	 PRIMARY KEY(user_guid,map_name, layer_order)
 );
+
+CREATE TABLE IF NOT EXISTS User_Parameters(
+	user_guid varchar(50)  NOT NULL,	
+	MapHomeZoom int NULL,
+	MapHomeCenterX float NULL,
+	MapHomeCenterY float NULL,
+        PRIMARY KEY(user_guid)
+);
+
+
 
 CREATE TABLE IF NOT EXISTS Routes(
 	route_guid varchar(50)  NOT NULL,
@@ -36,13 +46,46 @@ CREATE TABLE IF NOT EXISTS AtomObjects(
 	 PRIMARY KEY(atom_guid)
 );
 
+CREATE TABLE IF NOT EXISTS Activites(
+	ActivityId serial,                         
+	atom_guid varchar(50)  NOT NULL,
+	Activity_SeqNumber int  NOT NULL,
+	
+	ActivityType int  NOT NULL,
+		
+	StartActivityOffset varchar(50)  NOT NULL,
+	DurationActivity varchar(50)  NOT NULL,
+	
+	Speed int  NOT NULL,
+	route_guid varchar(50)  NOT NULL,
+
+        ReferencePointX float NULL,
+        ReferencePointY float NULL,
+			
+        PRIMARY KEY(atom_guid,ActivityId)
+);
+
 
 CREATE TABLE IF NOT EXISTS ActivityMovement(
-	ActivityId serial,                         
+	ActivityId int  NOT NULL,                        
 	atom_guid varchar(50)  NOT NULL,	
 	StartActivityOffset varchar(50)  NOT NULL,
 	DurationActivity varchar(50)  NOT NULL,
 	Speed int  NOT NULL,
 	route_guid varchar(50)  NOT NULL,		
-	 PRIMARY KEY(atom_guid,ActivityId)
+        PRIMARY KEY(atom_guid,ActivityId)
 );
+
+CREATE TABLE IF NOT EXISTS TreeObject(	
+	Identification varchar(2000)  NOT NULL,
+	GUID varchar(50)  NOT NULL,
+	ParentGUID varchar(50)  NOT NULL,
+	CountryId int NULL,
+	PlatformCategoryId int NULL,
+	PlatformType varchar(2000) NULL,
+	FormationTypeId int NULL,
+        PRIMARY KEY(GUID)
+);
+
+
+

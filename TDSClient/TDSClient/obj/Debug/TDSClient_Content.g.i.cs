@@ -8,7 +8,9 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("images/flag_blue.png")]
-[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("images/flag_red.png")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("resources/globalmapperutil.dll")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("resources/globalmapperutil.pdb")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("resources/terrainservice.dll")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("resources/terrainservice.pdb")]
 
 

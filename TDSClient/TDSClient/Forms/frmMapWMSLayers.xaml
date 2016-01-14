@@ -12,16 +12,17 @@
         <Button Background="Transparent" Margin="0,74,9,0" Click="cmdDown_Click" Name="cmdDown" Height="37" VerticalAlignment="Top" HorizontalAlignment="Right" Width="42">
             <Image Height="25"  HorizontalAlignment="Stretch"   Source="pack://application:,,,/images/DownIcon.png" Width="39" />
         </Button>
-        <Button Content="OK" HorizontalAlignment="Left" Margin="466,0,0,9" Click="buttonOK_Click" x:Name="buttonOK" Width="55" Height="20" VerticalAlignment="Bottom"  />
-        <Button Height="20" HorizontalAlignment="Left" Margin="316,0,0,7.2" Click="cmdSaveUser_Click" x:Name="cmdSaveUser" VerticalAlignment="Bottom" Width="55" >
+        <Button Content="OK" HorizontalAlignment="Left" Margin="466,0,0,7.2" Click="buttonOK_Click" x:Name="buttonOK" Width="55" Height="20" VerticalAlignment="Bottom"  />
+        <Button Height="20" HorizontalAlignment="Left" Margin="228,0,0,7.2" Click="cmdSaveUser_Click" x:Name="cmdSaveUser" VerticalAlignment="Bottom" Width="55" >
             <Image Source="pack://application:,,,/images/user.png" />
         </Button>
-        <Label ClipToBounds="True" Content="SavetoCurrentUser" Height="23" HorizontalAlignment="Left" Margin="196,0,0,6.2" x:Name="lblSaveUser" VerticalAlignment="Bottom" Width="124" />
+        <Label ClipToBounds="True" Content="Save Maps to User" Height="23" HorizontalAlignment="Left" Margin="113,0,0,6.2" x:Name="lblSaveUser" VerticalAlignment="Bottom" Width="103" />
         <Slider HorizontalAlignment="Left" Margin="10,319,0,0" Maximum="1" x:Name="trackTransparant" TickFrequency="0.1" TickPlacement="BottomRight" Width="274" Height="25" VerticalAlignment="Top" ValueChanged="trackTransparant_ValueChanged" />
         <Label ClipToBounds="True" Content="Transparency" Height="23" HorizontalAlignment="Left" Margin="10,283,0,0" x:Name="label1" VerticalAlignment="Top" Width="82" />
         <Button x:Name="btnRefresh" HorizontalAlignment="Right" Height="29" Margin="0,229,9,0" VerticalAlignment="Top" Width="42" Click="btnRefresh_Click" >
             <Image  Source="pack://application:,,,/images/Button_Refresh_Icon_32.png"    />
         </Button>
+        <Button Name="btnSaveZoom" Content="Save Zoom" HorizontalAlignment="Left" Margin="311,362,0,0" VerticalAlignment="Top" Height="20" Width="75" Click="btnSaveZoom_Click"/>
 
     </Grid>
 </Window>

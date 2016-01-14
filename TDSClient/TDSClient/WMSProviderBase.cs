@@ -33,8 +33,10 @@ namespace TDSClient
         string name = "Undefined WMS Provider";
         string url;
         string layer;
-        string srs = "EPSG:4326"; // = WGS84
+      //  string srs = "EPSG:4326"; // = WGS84
+        string srs = "EPSG:900913"; // = WGS84
         string tileFormat = "png";
+        //EPSG:900913
      //   ICoordinateTransformation coordTrans;
         List<GMapProvider> overlayList = new List<GMapProvider>();
 
@@ -255,6 +257,7 @@ namespace TDSClient
           //  var ret = string.Format(CultureInfo.InvariantCulture, UrlFormat, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Projection.TileSize.Width, Projection.TileSize.Height);
 
             var ret = string.Format(CultureInfo.InvariantCulture, UrlFormat, this.url, this.layer, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Projection.TileSize.Width, Projection.TileSize.Height, "CRS:84", "image/png");
+           // ret = string.Format(CultureInfo.InvariantCulture, UrlFormat, this.url, this.layer, p1.Lng, p1.Lat, p2.Lng, p2.Lat, Projection.TileSize.Width, Projection.TileSize.Height, "EPSG:3857", "image/png");
 
             return ret;
         }

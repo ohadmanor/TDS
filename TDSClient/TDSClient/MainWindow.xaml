@@ -41,6 +41,12 @@
             <Button Margin="5,0" ToolTip="Stop" Command="{Binding Path=StopScenarioCommand}">
                 <Image Source="pack://application:,,,/images/Iconset2Stop.png" Height="20" Margin="0"/>
             </Button>
+
+            <Button Margin="5,0" ToolTip="Maps Home Zoom" Command="{Binding Path=MapHomeZoomCommand}">
+                <Image Source="pack://application:,,,/images/Iconset2Home.png" Height="30"  Width="24" Margin="0"/>
+            </Button>
+
+
             <Button Margin="5,0" ToolTip="Maps" Command="{Binding Path=MapLayersCommand}">
                 <Image Source="pack://application:,,,/images/Map.png" Height="30"  Width="24" Margin="0"/>
             </Button>
@@ -48,21 +54,29 @@
             <Button Margin="5,0" ToolTip="Route Planning" Command="{Binding Path=PlanningRouteCommand}">
                 <Image Source="pack://application:,,,/images/Iconset2RoutePlanning.png" Height="24"  Width="24" Margin="0"/>
             </Button>
+
+            <Button Margin="5,0" ToolTip="Platforms" Command="{Binding Path=PlanningAgentsCommand}">
+                <Image Source="pack://application:,,,/images/UsersGroup.png" Height="24"  Width="24" Margin="0"/>
+            </Button>
+
+
+
+
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition/>
-                 
+                    <RowDefinition Height="13"/>
+                    <RowDefinition Height="20"/>
                 </Grid.RowDefinitions>
                 <Slider Grid.Row="0" Margin="5,0,0,0" Name="sliderExClockRatio"  TickFrequency="1" TickPlacement="BottomRight" Value="6" Maximum="6"  ClipToBounds="True" Interval="1" IsSnapToTickEnabled="True" Height="24" VerticalAlignment="Top" HorizontalAlignment="Left" Width="261" ValueChanged="sliderExClockRatio_ValueChanged" />
-             
-                <Label    HorizontalAlignment="Left" Margin="2,6,0,0" Name="lbl1To1" Width="32" Height="23" VerticalAlignment="Bottom">1/1</Label>
-                <Label HorizontalAlignment="Left" Margin="40,6,0,0" Name="label1To2" Width="32" Height="23" VerticalAlignment="Bottom">1/2</Label>
 
-                <Label HorizontalAlignment="Left" Margin="81,6,0,0" Name="label1To6" Width="32" Height="23" VerticalAlignment="Bottom">1/6</Label>
-                <Label Margin="122,6,0,0" Name="label1To12" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="32">1/12</Label>
-                <Label Margin="161,6,0,0" Name="label1To30" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="33">1/30</Label>
-                <Label HorizontalAlignment="Left" Margin="206,6,0,0" Name="label1To60" Width="32" Height="23" VerticalAlignment="Bottom">1/60</Label>
-                <Label Content="{x:Static  globalres:Resources.strMax}" HorizontalAlignment="Left" Margin="244,6,0,0" Name="labelMax" Width="48" Height="23" VerticalAlignment="Bottom"></Label>
+                <Label Grid.Row="1" FontSize="10"  HorizontalAlignment="Left" Margin="2,6,0,0" Name="lbl1To1" Width="32" Height="23" VerticalAlignment="Bottom">1/1</Label>
+                <Label Grid.Row="1" FontSize="10" HorizontalAlignment="Left" Margin="40,6,0,0" Name="label1To2" Width="32" Height="23" VerticalAlignment="Bottom">1/2</Label>
+
+                <Label Grid.Row="1" FontSize="10" HorizontalAlignment="Left" Margin="81,6,0,0" Name="label1To6" Width="32" Height="23" VerticalAlignment="Bottom">1/6</Label>
+                <Label Grid.Row="1" FontSize="10" Margin="122,6,0,0" Name="label1To12" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="36">1/12</Label>
+                <Label Grid.Row="1" FontSize="10" Margin="161,6,0,0" Name="label1To30" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="36">1/30</Label>
+                <Label Grid.Row="1" FontSize="10" HorizontalAlignment="Left" Margin="206,6,0,0" Name="label1To60" Width="36" Height="23" VerticalAlignment="Bottom">1/60</Label>
+                <Label Grid.Row="1" FontSize="10" Content="{x:Static  globalres:Resources.strMax}" HorizontalAlignment="Left" Margin="244,6,0,0" Name="labelMax" Width="48" Height="23" VerticalAlignment="Bottom"></Label>
             </Grid>
            
          
@@ -75,7 +89,7 @@
         
         <Border Grid.Row="1" Grid.Column="1"   CornerRadius="10" BorderThickness="3" Margin="0,5,0,0" Padding="5" BorderBrush="Gray">
             <Grid Grid.Row="1" Grid.Column="1">
-                <nsClient:GMapEx x:Name="MainMap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" >
+                <nsClient:GMapEx x:Name="MainMap" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Margin="0,0,-0.4,-0.4" >
                 </nsClient:GMapEx>
             </Grid>
         </Border>

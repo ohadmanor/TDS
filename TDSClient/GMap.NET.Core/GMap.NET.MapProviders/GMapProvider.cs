@@ -320,7 +320,8 @@ namespace GMap.NET.MapProviders
         /// timeout for provider connections
         /// </summary>
 #if !PocketPC
-        public static int TimeoutMs = 5 * 1000;
+       // public static int TimeoutMs = 5 * 1000;
+        public static int TimeoutMs = 20 * 1000;
 #else
       public static int TimeoutMs = 44 * 1000; 
 #endif

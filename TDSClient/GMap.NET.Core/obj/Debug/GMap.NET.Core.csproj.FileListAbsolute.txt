@@ -58,9 +58,10 @@ C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\x64\SQLite.Interop.dll
 C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\x86\SQLite.Interop.dll
 C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.dll
 C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.pdb
+C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.dll
 C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SqlServerCe.dll
+C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.xml
 C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Properties.Resources.resources
 C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
 C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.dll
 C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.pdb
-C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache

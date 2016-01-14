@@ -10,11 +10,11 @@ none
 false
 DEBUG;TRACE
 C:\Develope\TDS\TDSClient\TDSClient\App.xaml
-3-147313899
-
-2427581455
-261149193271
-Forms\frmMapWMSLayers.xaml;Forms\frmRouteActivityRouting.xaml;MainWindow.xaml;
+10-718011111
+490575914
+32-452503655
+271641195629
+Forms\frmActivities.xaml;Forms\frmActivityEdit.xaml;Forms\frmActorEdit.xaml;Forms\frmActorsList.xaml;Forms\frmMapWMSLayers.xaml;Forms\frmRouteActivityRouting.xaml;Forms\frmRouteEditOSMRouting.xaml;Forms\frmRouteList.xaml;Forms\frmSearchAtom.xaml;MainWindow.xaml;
 
 True
 

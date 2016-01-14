@@ -61,11 +61,56 @@ namespace TDSClient.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to X:.
+        /// </summary>
+        public static string lblX {
+            get {
+                return ResourceManager.GetString("lblX", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Y:.
+        /// </summary>
+        public static string lblY {
+            get {
+                return ResourceManager.GetString("lblY", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activities.
+        /// </summary>
+        public static string strActivites {
+            get {
+                return ResourceManager.GetString("strActivites", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Activity.
+        /// </summary>
+        public static string strActivity {
+            get {
+                return ResourceManager.GetString("strActivity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Are You Sure You Want to Delete It?.
         /// </summary>
         public static string strAreyousureyouwanttodeleteit {
             get {
                 return ResourceManager.GetString("strAreyousureyouwanttodeleteit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cancel.
+        /// </summary>
+        public static string strbtnCancel {
+            get {
+                return ResourceManager.GetString("strbtnCancel", resourceCulture);
             }
         }
         
@@ -84,6 +129,33 @@ namespace TDSClient.Properties {
         public static string strbtnDelete {
             get {
                 return ResourceManager.GetString("strbtnDelete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string strbtnEdit {
+            get {
+                return ResourceManager.GetString("strbtnEdit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exit.
+        /// </summary>
+        public static string strbtnExit {
+            get {
+                return ResourceManager.GetString("strbtnExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Find.
+        /// </summary>
+        public static string strbtnFind {
+            get {
+                return ResourceManager.GetString("strbtnFind", resourceCulture);
             }
         }
         
@@ -111,6 +183,15 @@ namespace TDSClient.Properties {
         public static string strbtnOK {
             get {
                 return ResourceManager.GetString("strbtnOK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Select.
+        /// </summary>
+        public static string strbtnSelect {
+            get {
+                return ResourceManager.GetString("strbtnSelect", resourceCulture);
             }
         }
         
@@ -214,11 +295,38 @@ namespace TDSClient.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move.
+        /// </summary>
+        public static string strMove {
+            get {
+                return ResourceManager.GetString("strMove", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Name.
+        /// </summary>
+        public static string strName {
+            get {
+                return ResourceManager.GetString("strName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Name:.
         /// </summary>
         public static string strNameColon {
             get {
                 return ResourceManager.GetString("strNameColon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Platform.
+        /// </summary>
+        public static string strPlatform {
+            get {
+                return ResourceManager.GetString("strPlatform", resourceCulture);
             }
         }
         
@@ -241,11 +349,47 @@ namespace TDSClient.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Platforms.
+        /// </summary>
+        public static string strPlatforms {
+            get {
+                return ResourceManager.GetString("strPlatforms", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Platform With The Same Name Already Exists.
         /// </summary>
         public static string strPlatformWithTheSamenameAlreadyExists {
             get {
                 return ResourceManager.GetString("strPlatformWithTheSamenameAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference Point.
+        /// </summary>
+        public static string strReferencePoint {
+            get {
+                return ResourceManager.GetString("strReferencePoint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Reference Point Must be Filled.
+        /// </summary>
+        public static string strReferencePointMustbeFilled {
+            get {
+                return ResourceManager.GetString("strReferencePointMustbeFilled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Road Planning.
+        /// </summary>
+        public static string strRoadPlanning {
+            get {
+                return ResourceManager.GetString("strRoadPlanning", resourceCulture);
             }
         }
         
@@ -304,11 +448,29 @@ namespace TDSClient.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Routes.
+        /// </summary>
+        public static string strRoutes {
+            get {
+                return ResourceManager.GetString("strRoutes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Save And Exit.
         /// </summary>
         public static string strSaveAndExit {
             get {
                 return ResourceManager.GetString("strSaveAndExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show Me.
+        /// </summary>
+        public static string strShowMe {
+            get {
+                return ResourceManager.GetString("strShowMe", resourceCulture);
             }
         }
         
@@ -340,11 +502,38 @@ namespace TDSClient.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search.
+        /// </summary>
+        public static string strToolTipSearch {
+            get {
+                return ResourceManager.GetString("strToolTipSearch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Undeploy.
+        /// </summary>
+        public static string strUndeploy {
+            get {
+                return ResourceManager.GetString("strUndeploy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Under Construction.
         /// </summary>
         public static string strUnderConstruction {
             get {
                 return ResourceManager.GetString("strUnderConstruction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Zoom.
+        /// </summary>
+        public static string strZoom {
+            get {
+                return ResourceManager.GetString("strZoom", resourceCulture);
             }
         }
     }

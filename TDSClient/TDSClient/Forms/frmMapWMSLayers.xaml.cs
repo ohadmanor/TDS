@@ -290,5 +290,27 @@ namespace TDSClient.Forms
             SetData();
 
         }
+
+        private async void btnSaveZoom_Click(object sender, RoutedEventArgs e)
+        {
+            UserParameters usrParameters = new UserParameters();
+            usrParameters.User = VMMainViewModel.Instance.UserName;
+            usrParameters.MapHomeZoom = (int)VMMainViewModel.Instance.MyMainMap.Zoom;
+            usrParameters.MapHomeCenterX = VMMainViewModel.Instance.MyMainMap.Position.Lng;
+            usrParameters.MapHomeCenterY = VMMainViewModel.Instance.MyMainMap.Position.Lat;
+
+            try
+            {
+                if (VMMainViewModel.Instance.SimulationHubProxy != null)
+                {
+                    await SAGSignalR.SaveUserParameters(VMMainViewModel.Instance.SimulationHubProxy, usrParameters);
+
+
+                }
+            }
+            catch (Exception ex)
+            { } 
+
+        }
     }
 }

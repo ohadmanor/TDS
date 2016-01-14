@@ -41,12 +41,21 @@ namespace TDSServer.GroundTask.StateMashine
         {
             refActivityMovement = ActivityMovement;
         }
-        public override void Enter(clsGroundAtom refGroundAtom)
+        public async override void Enter(clsGroundAtom refGroundAtom)
         {
             refGroundAtom.currentSpeed = refActivityMovement.Speed;
-            refGroundAtom.currentRoute = new typRoute(refActivityMovement.RouteActivity);
+          //  refGroundAtom.currentRoute = new typRoute(refActivityMovement.RouteActivity);
+
+
+             typRoute R= await refGroundAtom.m_GameObject.m_GameManager.refTerrain.CreateRoute(refGroundAtom.curr_X, refGroundAtom.curr_Y, refActivityMovement.ReferencePoint.x, refActivityMovement.ReferencePoint.y, refActivityMovement.RouteActivity.RouteGuid);
+             refGroundAtom.currentRoute = R;
+
+
            // refGroundAtom.SetRoute(refActivityMovement.RouteActivity);
         }
+
+
+
         public override void Execute(clsGroundAtom refGroundAtom)
         {
            if(refActivityMovement.TimeTo<refGroundAtom.m_GameObject.Ex_clockDate)
@@ -56,9 +65,30 @@ namespace TDSServer.GroundTask.StateMashine
                refGroundAtom.ChangeState(new ADMINISTRATIVE_STATE());
                return;
            }
-           if (refGroundAtom.currentLeg > refActivityMovement.RouteActivity.Points.Count()-1)
-            {
 
+
+           if (refGroundAtom.currentRoute == null) return;
+
+
+           refGroundAtom.isCollision = false;
+           List<clsGroundAtom> colAtoms = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 10, isPrecise: true);
+           foreach (clsGroundAtom atom in colAtoms)
+           {
+               if(atom!=refGroundAtom)
+               {
+                   refGroundAtom.isCollision = true;
+                   break;
+               }
+           }
+
+
+           if (refGroundAtom.currentLeg >  refGroundAtom.currentRoute.arr_legs.Count)  //-1)  // refActivityMovement.RouteActivity.Points.Count()-1)
+            {
+                refActivityMovement.isEnded = true;
+                refActivityMovement.isActive = false;
+                refGroundAtom.currentRoute = null;
+                refGroundAtom.ChangeState(new ADMINISTRATIVE_STATE());
+                return;
             }
            else
            {

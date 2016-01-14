@@ -102,5 +102,76 @@ namespace TDSServer.TDS.DAL
             }
         }
 
+
+
+        public static UserParameters GetUserParameters(string userName)
+        {
+            try
+            {
+                UserParameters parameters = null;
+             
+
+                string sql = "select * from User_Parameters where user_guid= '" + userName + "'";
+                using (NpgsqlConnection connection = new NpgsqlConnection(strPostGISConnection))
+                using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(sql, connection))
+                {
+                    DataSet ds = new DataSet();
+                    DataTable dt = new DataTable();
+                    ds.Reset();
+                    da.Fill(ds);
+                    dt = ds.Tables[0];
+                    foreach (DataRow row in dt.Rows)
+                    {
+                        parameters = new UserParameters();
+                        parameters.User = userName;
+                        parameters.MapHomeZoom = System.Convert.ToInt32(row["MapHomeZoom"]);
+                        parameters.MapHomeCenterX = System.Convert.ToDouble(row["MapHomeCenterX"]);
+                        parameters.MapHomeCenterY = System.Convert.ToDouble(row["MapHomeCenterY"]);                        
+                    }
+                    return parameters;
+                }
+            }
+            catch (Exception ex)
+            {
+            }
+            return null;
+        }
+
+
+
+        public static void SaveUserParameters(UserParameters usrParameters)
+        {
+            try
+            {
+
+                string sql = "delete from User_Parameters where user_guid='" + usrParameters.User + "'";
+                using (NpgsqlConnection connection = new NpgsqlConnection(strPostGISConnection))
+                {
+                    connection.Open();
+
+
+                    using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+                    {
+                        int rows = command.ExecuteNonQuery();
+                    }
+
+
+                    sql = "insert into User_Parameters  (user_guid,MapHomeZoom,MapHomeCenterX,MapHomeCenterY) values('" + usrParameters.User + "'," + usrParameters.MapHomeZoom.ToString() + "," + usrParameters.MapHomeCenterX + "," + usrParameters.MapHomeCenterY + ")";
+                    using (NpgsqlCommand command = new NpgsqlCommand(sql, connection))
+                    {
+                        int rows = command.ExecuteNonQuery();
+                    }
+
+                  
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
     }
 }

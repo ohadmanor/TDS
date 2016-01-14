@@ -29,7 +29,7 @@ using System.Windows.Media;
 using System.Globalization;
 
 using TDSClient.SAGInterface;
-
+using TerrainService;
 //using SAGClient.ViewModels;
 //using SAGClient.SAGInterface;
 
@@ -37,6 +37,8 @@ namespace TDSClient
 {
     public class GMapEx : GMapControl
     {
+        public event NotifyAtomDeployedEvent AtomDeployedEvent;
+
         delegate void Del();
         readonly Typeface tf = new Typeface("GenericSansSerif");
         readonly System.Windows.FlowDirection fd = new System.Windows.FlowDirection();
@@ -48,6 +50,7 @@ namespace TDSClient
 
         public GMapEx()
         {
+            this.AllowDrop = true;
             GMap.NET.PointLatLng Position = new GMap.NET.PointLatLng(0, 0);
             marker = new GMapMarker(Position);
             UserLayer = new UserDrawLayer();
@@ -65,9 +68,86 @@ namespace TDSClient
             PixelX = (int)p.X;
             PixelY = (int)p.Y;
         }
+        public void CenterOnGroundPointZoom(double aX, double aY)
+        {
+            this.Position = new GMap.NET.PointLatLng(aY, aX);
+          //  this.Zoom = this.currZoom + 1;
+            this.Zoom = this.Zoom + 1;
+            int XDown = (int)0;
+            int YDown = (int)0;
+            GMap.NET.PointLatLng curPosition = FromLocalToLatLng(XDown, YDown);
+            marker.Position = curPosition;
+            // InvalidateVisualGeneralAtoms();
+            return;
+        }
+
+        protected  async override void OnDrop( System.Windows.DragEventArgs e)
+        {
+            double currMapX = 0;
+            double currMapY = 0;           
+
+            System.Windows.DataObject d = (System.Windows.DataObject)e.Data;
+
+            string[] dataFormats = d.GetFormats();
+            string dataText = d.GetText();
+
+            Point position = e.GetPosition(this);
+            GMap.NET.PointLatLng curPosition = FromLocalToLatLng((int)position.X, (int)position.Y);
+            currMapX = curPosition.Lng;
+            currMapY = curPosition.Lat;
+
+            for (int i = 0; i < dataFormats.Length; i++)
+            {
+                string dragFormat = dataFormats[i];
+
+                if (dragFormat.Contains("FormationTree") && dataText == "Actor")
+                {                 
+                   
+                    object dragObject = d.GetData(dragFormat);
+
+                    FormationTree formation = dragObject as FormationTree;
+                    if (formation == null) continue;
+
+                    enOSMhighwayFilter highwayFilter = enOSMhighwayFilter.Undefined;
+                    SetHighwayFilter(highwayFilter);
+                    shPointId PointId = await clsRoadRoutingWebApi.GetNearestPointIdOnRoad("0", highwayFilter, currMapX, currMapY);
+                    if (PointId!=null)
+                    {
+                       shPoint pnt = PointId.point;
+                       DeployedFormation deployFormation = new DeployedFormation();
+                       deployFormation.x = pnt.x;
+                       deployFormation.y = pnt.y;
+                       deployFormation.formation = formation;
+
+                        AtomData atom=   await TDSClient.SAGInterface.SAGSignalR.DeployFormationFromTree(VMMainViewModel.Instance.SimulationHubProxy, deployFormation);
+                        if(atom!=null)
+                        {
+                            AtomDeployedEventArgs args = new AtomDeployedEventArgs();
+                            args.atom = atom;
+                            if(AtomDeployedEvent!=null)
+                            {
+                                AtomDeployedEvent(this, args);                                
+                            }
+                        }
+                    }
+
+                    return;
+                }
+            }
+
+      
 
 
+        }
 
+        public void SetHighwayFilter(enOSMhighwayFilter highwayFilter)
+        {
+            highwayFilter = highwayFilter | enOSMhighwayFilter.CarMostImportant;
+            highwayFilter = highwayFilter | enOSMhighwayFilter.CarMediumImportant;
+            highwayFilter = highwayFilter | enOSMhighwayFilter.CarLowImportant;
+            highwayFilter = highwayFilter | enOSMhighwayFilter.Construction;
+
+        }
         protected override void OnMouseWheel(MouseWheelEventArgs e)
         {
             base.OnMouseWheel(e);
@@ -135,6 +215,8 @@ namespace TDSClient
                 catch (Exception ex)
                 {
                 }
+
+
             }
             else if (e.RightButton == System.Windows.Input.MouseButtonState.Pressed)
             {
@@ -199,7 +281,7 @@ namespace TDSClient
                  try
                  {
 
-                 
+                     if (MainViewModel == null) return;
 
                         using (DrawingContext dc = UserLayer.ObjectDrawingVisualStatusBar.RenderOpen())
                         {
@@ -286,6 +368,7 @@ namespace TDSClient
             {
                 using (DrawingContext dc = UserLayer.ObjectDrawingVisualGeneralAtoms.RenderOpen())
                 {
+                    VMMainViewModel.Instance.NotifyUserDrawEvent(dc);
                     if (MainViewModel.colGroundAtoms != null)
                     {
                         foreach (structTransportCommonProperty Tr in MainViewModel.colGroundAtoms.Values)
@@ -294,7 +377,9 @@ namespace TDSClient
                         }
 
                     }
-                    VMMainViewModel.Instance.NotifyUserDrawEvent(dc);
+                  //  VMMainViewModel.Instance.NotifyUserDrawEvent(dc);
+
+
                     //if (MainViewModel.colInfraStructureAtoms != null)
                     //{
                     //    foreach (structTransportCommonProperty Tr in MainViewModel.colInfraStructureAtoms.Values)

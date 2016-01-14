@@ -1,0 +1,14 @@
+﻿<Window x:Class="TDSClient.Forms.frmActorEdit"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:globalres="clr-namespace:TDSClient.Properties"
+        Title="{x:Static globalres:Resources.strPlatform}" Height="144" Width="304" FontFamily="Global User Interface" FontSize="11" ResizeMode="NoResize" ShowInTaskbar="False" WindowStyle="ToolWindow">
+    <Grid>
+        <TextBlock  TextWrapping="Wrap" Height="24" HorizontalAlignment="Left" Margin="3,8,0,0"
+        	x:Name="textBlockRouteName" VerticalAlignment="Top" Width="71"  Text="{x:Static globalres:Resources.strName}"/>
+        <TextBox  Name="txtName" HorizontalAlignment="Left" Height="23" Margin="74,7,0,0" TextWrapping="Wrap"  VerticalAlignment="Top" Width="202"/>
+        <Button Margin="180,74,0,0" x:Name="cmdExit" Click="cmdExit_Click" Content="{x:Static globalres:Resources.strSaveAndExit}"  Width="83" RenderTransformOrigin="0.209,0" Height="21" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+        <Button Name="btnCancel" Content="{x:Static globalres:Resources.strbtnCancel}"  HorizontalAlignment="Left" Margin="96,74,0,0" Width="75" RenderTransformOrigin="0.707,0.07" Click="btnCancel_Click" Height="21" VerticalAlignment="Top"/>
+
+    </Grid>
+</Window>

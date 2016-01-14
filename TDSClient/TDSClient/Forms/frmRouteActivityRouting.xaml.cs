@@ -201,6 +201,9 @@ namespace TDSClient.Forms
 
         private  async void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            startActivity.Value = TimeSpan.Parse("00:00:01");
+            durationActivity.Value = TimeSpan.Parse("20:00:00");
+            speedUpDown.Value = 5;
 
             if (refActivityDTO != null)
             {

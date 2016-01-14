@@ -11,6 +11,7 @@ using System.Windows.Threading;
 
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Controls;
 
 using System.ComponentModel;
 using GMap.NET;
@@ -23,8 +24,24 @@ using System.Collections.Specialized;
 
 using TDSClient.SAGInterface;
 
+using TerrainService;
+
 namespace TDSClient
 {
+    public enum enMapTool
+    {
+        DefautMapTool = 0,
+        ZoomInMapTool = 1,
+        ZoomOutMapTool = 2,
+        PaneMapTool = 3,
+        PathProfileTool = 4,
+        DistanceTool = 5,
+        MoveObjectTool = 6,
+        EntitiesPolygon = 7
+    }
+   
+
+
     public delegate void delegateDrawWPF(DrawingContext dc);
     public delegate void MouseLeftClickOnMapEventWPF(object sender, MapMouseEventArgsWPF e);
     public delegate void MouseRightClickOnMapEventWPF(object sender, MapMouseEventArgsWPF e);
@@ -67,8 +84,14 @@ namespace TDSClient
                PauseScenarioCommand = new DelegateCommand(x => PauseScenario(), Dispatcher.CurrentDispatcher);
                StopScenarioCommand = new DelegateCommand(x => StopScenario(), Dispatcher.CurrentDispatcher);
 
+               MapHomeZoomCommand = new DelegateCommand(x => MapHomeZoom_Click(), Dispatcher.CurrentDispatcher);
+
+
                MapLayersCommand = new DelegateCommand(x => MapLayers_Click(), Dispatcher.CurrentDispatcher);
                PlanningRouteCommand = new DelegateCommand(x => PlanningRoute(), Dispatcher.CurrentDispatcher);
+
+
+               PlanningAgentsCommand = new DelegateCommand(x => PlanningAgents(), Dispatcher.CurrentDispatcher);
 
 
                SelectTools = new clsSelectTools(); 
@@ -85,9 +108,15 @@ namespace TDSClient
         public DelegateCommand PauseScenarioCommand { get; set; }
         public DelegateCommand StopScenarioCommand { get; set; }
 
+
+        public DelegateCommand MapHomeZoomCommand { get; set; }
+
         public DelegateCommand MapLayersCommand { get; set; }
 
         public DelegateCommand PlanningRouteCommand { get; set; }
+
+        public DelegateCommand PlanningAgentsCommand { get; set; }
+
 
         public DelegateCommand TestCommand { get; set; }
 
@@ -106,6 +135,32 @@ namespace TDSClient
                     OnPropertyChanged("IsBusy");
                 }
 
+            }
+        }
+
+        public structTransportCommonProperty MoveObjectCommonProperty = null;
+        private enMapTool currMapTool = enMapTool.DefautMapTool;
+        public enMapTool CurrMapTool
+        {
+            get { return currMapTool; }
+            set
+            {
+                if(currMapTool!=value)
+                {
+                     Image im = new Image();
+                     MyMainMap.Cursor = null;
+                     switch (value)
+                     {
+                         case enMapTool.MoveObjectTool:
+
+                             im.Source =Utilites.ImageSourceAtom(null);
+                             im.OpacityMask = Brushes.White;
+                             MyMainMap.Cursor = CursorHelper.CreateCursor(im, (int)im.Source.Width / 2, (int)im.Source.Height / 2);
+
+                             break;
+                     }
+                     currMapTool = value;
+                }
             }
         }
 
@@ -145,6 +200,9 @@ namespace TDSClient
 
 
        
+
+
+
         public delegateDrawWPF dlgUserDrawWPF = null;
         internal void NotifyUserDrawEvent(DrawingContext dc)
         {
@@ -166,8 +224,54 @@ namespace TDSClient
             }
         }
         public MouseLeftClickOnMapEventWPF dlgMouseLeftClickOnMapEvent = delegate { };
-        internal void NotifyMouseLeftClickOnMapEvent(MapMouseEventArgsWPF args)
+
+        internal  async void NotifyMouseLeftClickOnMapEvent(MapMouseEventArgsWPF args)
         {
+
+            double currMapX = args.MapXLongLatWGS84;
+            double currMapY = args.MapYLongLatWGS84;
+
+
+            switch(CurrMapTool)
+            {
+                case enMapTool.MoveObjectTool:
+                    CurrMapTool = enMapTool.DefautMapTool;
+
+                    enOSMhighwayFilter highwayFilter = enOSMhighwayFilter.Undefined;
+                    highwayFilter = highwayFilter | enOSMhighwayFilter.CarMostImportant;
+                    highwayFilter = highwayFilter | enOSMhighwayFilter.CarMediumImportant;
+                    highwayFilter = highwayFilter | enOSMhighwayFilter.CarLowImportant;
+                    highwayFilter = highwayFilter | enOSMhighwayFilter.Construction;
+
+                    shPointId PointId = await clsRoadRoutingWebApi.GetNearestPointIdOnRoad("0", highwayFilter, currMapX, currMapY);
+
+                    if (PointId != null)
+                    {
+                        shPoint pnt = PointId.point;
+                        DeployedFormation deployFormation = new DeployedFormation();
+                        deployFormation.x = pnt.x;
+                        deployFormation.y = pnt.y;
+
+                        deployFormation.formation = new FormationTree();
+                        deployFormation.formation.Identification = MoveObjectCommonProperty.AtomName;
+                        deployFormation.formation.GUID = MoveObjectCommonProperty.GUID;
+
+
+                       // deployFormation.formation = formation;
+
+                        await TDSClient.SAGInterface.SAGSignalR.MoveGroundObject(VMMainViewModel.Instance.SimulationHubProxy, deployFormation);
+                       
+                    }
+
+
+                    break;
+            }
+
+          
+
+
+
+
             if (dlgMouseLeftClickOnMapEvent == null) return;
 
             System.Delegate[] invklist = dlgMouseLeftClickOnMapEvent.GetInvocationList();
@@ -234,6 +338,23 @@ namespace TDSClient
             {
                 UserMaps usermaps = null;
                 this.strWMSGeoserverUrl = ConfigurationManager.AppSettings["WMSGeoserver"];
+
+                string strMapCache_Path = ConfigurationManager.AppSettings["MapCache_Path"];
+                string strMapCacheEnable = ConfigurationManager.AppSettings["MapCacheEnable"];
+                bool MapCacheEnable = false;
+                if (string.IsNullOrEmpty(strMapCacheEnable) == false)
+                {
+                    if (strMapCacheEnable.ToLower() == "false")
+                    {
+                        MapCacheEnable = false;
+                    }
+                    else
+                    {
+                        MapCacheEnable = true;
+                    }
+                }
+
+
                // string strWMSGeoserverUrl = ConfigurationManager.AppSettings["WMSGeoserver"];
                 if (string.IsNullOrEmpty(strWMSGeoserverUrl)) return null;
                 WMSCapabilities Capabilities = await WMSProviderBase.WMSCapabilitiesRetrieve(strWMSGeoserverUrl);
@@ -244,6 +365,9 @@ namespace TDSClient
                     if (VMMainViewModel.Instance.SimulationHubProxy != null)
                     {
                         usermaps = await SAGSignalR.GetUserMaps(VMMainViewModel.Instance.SimulationHubProxy, UserName);
+
+                        UserParameters userParameters = await SAGSignalR.GetUserParameters(VMMainViewModel.Instance.SimulationHubProxy, UserName);
+
                         if(usermaps!=null)
                         {
                             foreach (UserMapPreference info in usermaps.maps)
@@ -271,9 +395,36 @@ namespace TDSClient
                             MapProvider.overlays = overlays.ToArray();
                             p_objMap.MapProvider = MapProvider;
 
+                            if (MapCacheEnable &&  string.IsNullOrEmpty(strMapCache_Path)==false)
+                            {
+                                p_objMap.Manager.Mode = AccessMode.ServerAndCache;
+                                p_objMap.CacheLocation = strMapCache_Path;
+                                  
+                            }
+                         //   p_objMap.Manager.Mode = AccessMode.ServerOnly; //TEMP
+
+                        //    p_objMap.Manager.Mode = AccessMode.ServerAndCache;
+
+
+
+
+
+                            p_objMap.Manager.MemoryCache.Capacity = 44;
                             p_objMap.Zoom = 10;
+
+                            if (userParameters!=null)
+                            {
+                                p_objMap.Position = new PointLatLng(userParameters.MapHomeCenterY, userParameters.MapHomeCenterX);
+                                p_objMap.Zoom = userParameters.MapHomeZoom;
+                            }
+
+
+
                             p_objMap.ShowTileGridLines = false;
                             p_objMap.InvalidateVisual(true);
+
+
+
 
 
                         }
@@ -609,24 +760,40 @@ namespace TDSClient
             {
                 BackgroundBrush = Brushes.Red;
                 curBrush.Color = System.Windows.Media.Colors.Red;
-                
+                if (refGroundAtom.isCollision)
+                {
+                    curBrush.Color = System.Windows.Media.Colors.Blue;
+                }
 
 
 
                 MyMainMap.ConvertCoordGroundToPixel(refGroundAtom.X, refGroundAtom.Y, ref PixelX, ref PixelY);
 
-                ch = (char)1000;         //(char)refGroundAtom.FontKey;
+                ch = (char)150; //  1000;         //(char)refGroundAtom.FontKey;
+                //42
+
+                //System.Windows.Media.FormattedText frm2 = new System.Windows.Media.FormattedText(new string(ch, 1),
+                //                                    System.Globalization.CultureInfo.GetCultureInfo("en-us"),
+                //                                    System.Windows.FlowDirection.LeftToRight,
+                //                                    new System.Windows.Media.Typeface("Simulation Font Environmental"),
+                //                                    24, curBrush);
+
 
 
                 System.Windows.Media.FormattedText frm2 = new System.Windows.Media.FormattedText(new string(ch, 1),
-                                                    System.Globalization.CultureInfo.GetCultureInfo("en-us"),
-                                                    System.Windows.FlowDirection.LeftToRight,
-                                                    new System.Windows.Media.Typeface("Simulation Font Environmental"),
-                                                    42, curBrush);
+                                                  System.Globalization.CultureInfo.GetCultureInfo("en-us"),
+                                                  System.Windows.FlowDirection.LeftToRight,
+                                                  new System.Windows.Media.Typeface("Wingdings 2"),
+                                                  42, curBrush);
 
                 frm2.TextAlignment = System.Windows.TextAlignment.Center;
-                dc.DrawText(frm2, new System.Windows.Point(PixelX, PixelY - frm2.Height / 2));
 
+             // double w=  (frm2.Width / 8);
+              double w = (frm2.Width / 2);
+              w = 0;
+              double h = frm2.Height / 2;
+             //   dc.DrawText(frm2, new System.Windows.Point(PixelX, PixelY - frm2.Height / 2));
+                dc.DrawText(frm2, new System.Windows.Point(PixelX + w, PixelY -h));
 
 
 
@@ -697,6 +864,27 @@ namespace TDSClient
 
             }
         }
+
+
+        private async void MapHomeZoom_Click()
+        {
+            try
+            {
+                UserParameters userParameters = await SAGSignalR.GetUserParameters(VMMainViewModel.Instance.SimulationHubProxy, UserName);
+                if (userParameters != null)
+                {
+                    p_objMap.Position = new PointLatLng(userParameters.MapHomeCenterY, userParameters.MapHomeCenterX);
+                    p_objMap.Zoom = userParameters.MapHomeZoom;
+                    p_objMap.InvalidateVisual(true);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
         private void MapLayers_Click()
         {            
 
@@ -716,10 +904,26 @@ namespace TDSClient
 
         private void PlanningRoute()
         {
-            TDSClient.Forms.frmRouteActivityRouting frm = new Forms.frmRouteActivityRouting(null);           
+            //TDSClient.Forms.frmRouteActivityRouting frm = new Forms.frmRouteActivityRouting(null);           
+            //frm.Owner = Application.Current.MainWindow;
+            //frm.Show();
+
+            TDSClient.Forms.frmRouteList frm = new Forms.frmRouteList();
             frm.Owner = Application.Current.MainWindow;
             frm.Show();
+
         }
+
+        private void PlanningAgents()
+        {
+
+
+            TDSClient.Forms.frmActorsList frm = new Forms.frmActorsList();
+            frm.Owner = Application.Current.MainWindow;
+            frm.Show();
+
+        }
+
         public async void SetExClockRatioSpeed(int ExClockRatioSpeed)
         {
             await SAGSignalR.SetExClockRatioSpeed(VMMainViewModel.Instance.SimulationHubProxy, ExClockRatioSpeed);

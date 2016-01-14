@@ -15,7 +15,8 @@ namespace TDSClient.SAGInterface
     {
         public string RouteName;
         public string RouteGuid;
-        public IEnumerable<DPoint> Points;
+      //  public IEnumerable<DPoint> Points;
+        public List<DPoint> Points;
     }
     public class AtomData
     {
@@ -31,16 +32,40 @@ namespace TDSClient.SAGInterface
     public class GeneralActivityDTO
     {
         public int ActivityId;
+        public int Activity_SeqNumber;
         public AtomData Atom;
         public enumActivity ActivityType;
         public TimeSpan StartActivityOffset;
         public TimeSpan DurationActivity;
         public int Speed;
         public Route RouteActivity;
+        public DPoint ReferencePoint;
 
     }
+    public enum enumPlatformId
+    {
+        Undefined = 0,
+        GeneralHumans = 1
+    }
+    public class FormationTree
+    {
+        public string Identification;
+        public string GUID;
+        public string ParentGUID;
+        public int CountryId;
+        public enumPlatformId PlatformCategoryId;
+        public string PlatformType;
+        public int FormationTypeId;
 
-
+        public bool isDeployed;
+        public bool isActivityes;
+    }
+    public class DeployedFormation
+    {
+        public FormationTree formation;
+        public double x;
+        public double y;
+    }
     public enum enumLineStyle
     {
         Solid = 0,
@@ -61,6 +86,16 @@ namespace TDSClient.SAGInterface
         public string User;
         public UserMapPreference[] maps;
     }
+
+
+    public class UserParameters
+    {
+        public string User;
+        public int MapHomeZoom;
+        public double MapHomeCenterX;
+        public double MapHomeCenterY;
+    }
+
 
     public class CustomImageInfo
     {
@@ -130,9 +165,15 @@ namespace TDSClient.SAGInterface
     public sealed class structTransportCommonProperty
     {
         public string AtomClass;
-        public string AtomName;
+      
+        public String AtomName
+        { get; set; }
         public string TextValue;
-        public bool isVirtualAtom;
+       
+        public String GUID
+        { get; set; }
+
+        public bool isVirtualAtom;       
         //  public COLOR_SIDE CountryColorSide;     
         public double X;
         public double Y;
@@ -140,7 +181,7 @@ namespace TDSClient.SAGInterface
 
         public ushort FontKey;
         public ushort CountryId;
-
+        public bool isCollision;
 
     }
     public struct structTransport2Client

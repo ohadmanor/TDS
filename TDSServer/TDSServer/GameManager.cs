@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.AspNet.SignalR;
+using TDSServer.GroundTask;
 
 namespace TDSServer
 {
@@ -18,15 +19,23 @@ namespace TDSServer
 
 
         public int ExClockRatioSpeed = 0;  // 0 - Max Speed
-        public int GroundCycleResolution = 1000;// 1000 milliseconds==1 sec
+        public int GroundCycleResolution = 200;    //1000;// 1000 milliseconds==1 sec
+        public int CollisionMeters = 10;
+
+
+        public QuadTree<clsGroundAtom> QuadTreeGroundAtom = null;
 
 
         private Thread StatusControllerThread;
         private Thread Ex_ManagerThread;
         private List<structQuery2Manager> QueryChangeScenarioStatusList = new List<structQuery2Manager>();
         public GameObject m_GameObject = null;
+
+        public clsTerrain refTerrain = null;
+
         public GameManager()
         {
+            refTerrain = clsTerrain.Instance;
             initManager();        
 
         }
@@ -49,9 +58,9 @@ namespace TDSServer
             StatusControllerThreadShouldStop = false;
             StatusControllerThread.Start();
 
-            ThreadStart worker1 = new ThreadStart(m_GameObject.Ex_Manager);
-            Ex_ManagerThread = new Thread(worker1);
-            Ex_ManagerThread.Name = "Ex_Manager";
+            //ThreadStart worker1 = new ThreadStart(m_GameObject.Ex_Manager);
+            //Ex_ManagerThread = new Thread(worker1);
+            //Ex_ManagerThread.Name = "Ex_Manager";
            
 
         }
@@ -131,6 +140,9 @@ namespace TDSServer
                     case QUERY_SCENARIOSTATUS.QUERY_START_SCENARIO:
                         if (m_ManagerStatus == typGamestatus.EDIT_STATUS)
                         {
+
+                            InitObjects();
+
                             m_GameObject.Ex_clockGroundExecute = DateTime.MinValue;
 
                             ThreadStart worker1 = new ThreadStart(m_GameObject.Ex_Manager);
@@ -138,7 +150,7 @@ namespace TDSServer
                             Ex_ManagerThread.Name = "Ex_Manager";
                             Ex_ManagerThreadShouldStop = false;
                             Ex_ManagerThread.Start();
-
+                          
                             m_ManagerStatus = typGamestatus.RUN_STATUS;
                         }
                         else if (m_ManagerStatus == typGamestatus.PAUSE_STATUS)
@@ -261,6 +273,9 @@ namespace TDSServer
 
         private void InitObjects( )
         {
+            DAreaRect rect = new DAreaRect(-180.0, -85.0, 180.0, 85.0);           
+            QuadTreeGroundAtom = new QuadTree<clsGroundAtom>(rect, 0, null);
+
             m_GameObject.InitObjects();
 
             //structQuery2Manager Query2Manager = new structQuery2Manager();

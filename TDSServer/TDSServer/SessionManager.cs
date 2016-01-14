@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Configuration;
+
 
 namespace TDSServer
 {
@@ -19,6 +21,10 @@ namespace TDSServer
         }
         public void Initialize()
         {
+            string strRoadRoutingWebApiAddress = ConfigurationManager.AppSettings["RoadRoutingWebApiAddress"];
+            clsRoadRoutingWebApi.SetBaseAddress(strRoadRoutingWebApiAddress);
+
+
             gameManager = new GameManager();
         }
 

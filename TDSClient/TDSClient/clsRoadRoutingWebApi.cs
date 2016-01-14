@@ -75,26 +75,36 @@ namespace TDSClient
 
         public static async Task<shPointId> GetNearestPointIdOnRoad(string ScenarioId, enOSMhighwayFilter highwayFilter, double x, double y)
         {
-             using(var client = new HttpClient())
-             {
-                 client.BaseAddress = new Uri(BaseAddress);
-                 client.DefaultRequestHeaders.Accept.Clear();
-                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                 string strUri = "api/Routing/GetNearestPointIdOnRoad?ScenarioId=" + ScenarioId + "&highwayFilter=" + (int)highwayFilter + "&x=" + x + "&y=" + y;
-                 HttpResponseMessage response = await client.GetAsync(strUri);
+            try
+            {
+                using (var client = new HttpClient())
+                {
+                    client.BaseAddress = new Uri(BaseAddress);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-                 if (response.StatusCode != System.Net.HttpStatusCode.OK)
-                 {
-                     return null;
-                 }
+                    string strUri = "api/Routing/GetNearestPointIdOnRoad?ScenarioId=" + ScenarioId + "&highwayFilter=" + (int)highwayFilter + "&x=" + x + "&y=" + y;
+                    HttpResponseMessage response = await client.GetAsync(strUri);
 
-                 HttpContent content = response.Content;
-                 string v = await content.ReadAsStringAsync();                  
-                 shPointId tmp = JsonConvert.DeserializeObject<shPointId>(v);
-                 return tmp;
+                    if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                    {
+                        return null;
+                    }
 
-             }
+                    HttpContent content = response.Content;
+                    string v = await content.ReadAsStringAsync();
+                    shPointId tmp = JsonConvert.DeserializeObject<shPointId>(v);
+                    return tmp;
+
+                }
+            }
+            catch(Exception ex)
+            {
+
+            }
+            return null;
+            
         }
 
         public static async Task<shPointId> GetNearestRoadNodeWithCondition(string ScenarioId, enOSMhighwayFilter highwayFilter, double x, double y, int NodeidFromTo, bool isPointFrom)
@@ -150,6 +160,31 @@ namespace TDSClient
               
         }
 
+        public static async Task<shPath> FindShortPath(string ScenarioId, double StartX, double StartY, double DestinationX, double DestinationY, bool isPriorityAboveNormal)
+        {
+            using (var client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(BaseAddress);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
+
+                string strUri = "api/Routing/FindShortPath?ScenarioId=" + ScenarioId + "&StartX=" + StartX + "&StartY=" + StartY + "&DestinationX=" + DestinationX + "&DestinationY=" + DestinationY + "&isPriorityAboveNormal=" + isPriorityAboveNormal;
+
+                HttpResponseMessage response = await client.GetAsync(strUri);
+
+                if (response.StatusCode != System.Net.HttpStatusCode.OK)
+                {
+                    return null;
+                }
+
+                HttpContent content = response.Content;
+                string v = await content.ReadAsStringAsync();
+
+                shPath tmp = JsonConvert.DeserializeObject<shPath>(v);
+                return tmp;
+            }
+
+        }
     }
 }

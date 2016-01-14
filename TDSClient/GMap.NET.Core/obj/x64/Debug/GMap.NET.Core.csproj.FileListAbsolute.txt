@@ -19,3 +19,14 @@ C:\Develope\KingsGame\GameClient\GMap.NET.Core\obj\x64\Debug\GMap.NET.Properties
 C:\Develope\KingsGame\GameClient\GMap.NET.Core\obj\x64\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
 C:\Develope\KingsGame\GameClient\GMap.NET.Core\obj\x64\Debug\GMap.NET.Core.dll
 C:\Develope\KingsGame\GameClient\GMap.NET.Core\obj\x64\Debug\GMap.NET.Core.pdb
+C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\x64\Debug\x64\SQLite.Interop.dll
+C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\x64\Debug\x86\SQLite.Interop.dll
+C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\x64\Debug\GMap.NET.Core.dll
+C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\x64\Debug\GMap.NET.Core.pdb
+C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\x64\Debug\System.Data.SqlServerCe.dll
+C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\x64\Debug\System.Data.SQLite.xml
+C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\x64\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache
+C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\x64\Debug\GMap.NET.Properties.Resources.resources
+C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\x64\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
+C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\x64\Debug\GMap.NET.Core.dll
+C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\x64\Debug\GMap.NET.Core.pdb

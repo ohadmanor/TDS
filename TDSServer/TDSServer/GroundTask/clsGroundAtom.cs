@@ -7,12 +7,16 @@ using TDSServer.GroundTask.StateMashine;
 
 namespace TDSServer.GroundTask
 {
-    public class clsGroundAtom : AtomBase
+    public class clsGroundAtom : AtomBase, IQuadTree
     {
         [NonSerialized]
         public GameObject m_GameObject = null;
         public BasicStateFormGroundTaskOrder currentState = null;
         public string GUID = String.Empty;
+        public DAreaRect QuadTreeBounds;
+        public bool isCollision;
+
+
         private int m_currentLeg;
         public int currentLeg
         {
@@ -39,7 +43,7 @@ namespace TDSServer.GroundTask
         }
 
 
-
+       
         //private Route m_Route;
         //public void SetRoute(Route route) 
         //{           
@@ -119,7 +123,7 @@ namespace TDSServer.GroundTask
                 double distToPoint = TerrainService.MathEngine.CalcDistance(curr_X, curr_Y, currentRoute.arr_legs[i].ToLongn, currentRoute.arr_legs[i].ToLatn) / 1000;
                 if (distToPoint > dist)
                 {
-                    m_currentLeg = i + 1;
+                  //  m_currentLeg = i + 1;
 
                     double curDist = currentRoute.arr_legs[i].LegDistance;
                     double deltaX = 0;
@@ -132,6 +136,8 @@ namespace TDSServer.GroundTask
                         curr_X = curr_X + deltaX;
                         curr_Y = curr_Y + deltaY;
                     }
+
+                    m_GameObject.m_GameManager.QuadTreeGroundAtom.PositionUpdate(this);
                     return;                    
                 }
                 else
@@ -154,6 +160,33 @@ namespace TDSServer.GroundTask
                     }
                 }
             }
+
+            m_GameObject.m_GameManager.QuadTreeGroundAtom.PositionUpdate(this);
+        }
+
+        public new string Key
+        {
+            get { return GUID; }
+        }
+
+        public double x
+        {
+            get { return curr_X; }
+        }
+
+        public double y
+        {
+            get { return curr_Y; }
+        }
+
+        DAreaRect IQuadTree.QuadTreeBounds
+        {
+            set { QuadTreeBounds = value; }
+        }
+
+        public bool bVisibleToClient
+        {
+            get { return true; }
         }
     }
 }

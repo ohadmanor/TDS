@@ -11,6 +11,11 @@ using TDSClient.SAGInterface;
 namespace TDSClient
 {
     public delegate void NotifyEndDrawPolygonEvent(object sender, DrawPolygonEventArgs args);
+    public delegate void NotifyEndAtomObjectsEditEvent(object sender, AtomObjectsEditEventArgs args);
+
+    public delegate void NotifyAtomDeployedEvent(object sender, AtomDeployedEventArgs args);
+
+    public delegate void NotifyActivityDTOEditEvent(object sender, ActivityDTOEditEventArgs args);
 
     public class DrawPolygonEventArgs : System.EventArgs
     {
@@ -36,11 +41,36 @@ namespace TDSClient
         public bool isColoredLineShape;
 
     }
+    public class AtomObjectsEditEventArgs : System.EventArgs
+    {      
+        public bool isCancel;
+        public bool isNew;
+        public FormationTree atomDTO;
+    }
+    public class ActivityDTOEditEventArgs : System.EventArgs
+    {
+        public bool isCancel;
+        public bool isNew;
+        public GeneralActivityDTO ActivityDTO;
+    }
+      
+
+
+
+    public class AtomDeployedEventArgs : System.EventArgs
+    {
+        public AtomData atom;
+    }
 
     public struct DPoint
     {
         public double X;     // X (or longitude) coordinate
         public double Y;     // Y (or latitude) coordinate
+        public DPoint(double X_, double Y_)
+        {
+            X = X_;
+            Y = Y_;
+        }
     } 
     public class MapMouseEventArgsWPF : System.EventArgs
     {
