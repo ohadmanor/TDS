@@ -16,13 +16,55 @@ namespace TDSServer.GroundTask
         public DAreaRect QuadTreeBounds;
         public bool isCollision;
 
+        private const double OFFSET_IN_COLLISION = 0.3F;
+        public const double MAX_OFFSET = 10;
+
+        // compare yourself to others only in this radius
+        public const double COMPARISON_RADIUS = 10;
+
+        // human field of view - 120 degrees (in radians of course, to make our lives easier)
+        public const double FIELD_OF_VIEW_RADIANS = 120 * Math.PI / 180;
 
         private int m_currentLeg;
+        private int m_age;
+        private double m_avoidanceSideProbability;
+        private double m_personalSpace;
+        private String m_gender;
+        private int m_groupId;
+
         public int currentLeg
         {
             get { return m_currentLeg; }
             set { m_currentLeg = value; }
         }
+        public double personalSpace
+        {
+            get { return m_personalSpace; }
+            set { m_personalSpace = value; }
+        }
+
+        // offset from route - poisitive means I'm moving to the right side, negative means I'm moving to the left side
+        private double m_currentLegOffset;
+        public double currentLegOffset
+        {
+            get { return m_currentLegOffset; }
+            set { m_currentLegOffset = value; }
+        }
+
+        private double m_speedGain;
+        public double speedGain
+        {
+            get { return m_speedGain; }
+            set { m_speedGain = value; }
+        }
+
+        private double m_speedCosine;
+        public double speedCosine
+        {
+            get { return m_speedCosine; }
+            set { m_speedCosine = value; }
+        }
+ 
         private double m_Speed;
         public double currentSpeed
         {
@@ -56,6 +98,12 @@ namespace TDSServer.GroundTask
         {
             m_GameObject = pGameObject;
             ChangeState(new ADMINISTRATIVE_STATE());
+            m_personalSpace = 0.5;
+            m_speedGain = 1;
+            m_speedCosine = 1;
+
+            // position atom in a random place between -MAX_OFFSET and MAX_OFFSET
+            m_currentLegOffset = 2 * MAX_OFFSET * Util.rand.NextDouble() - MAX_OFFSET;
         }
 
 
@@ -119,7 +167,7 @@ namespace TDSServer.GroundTask
         LabBegin:
             for (int i = m_currentLeg - 1; i < currentRoute.arr_legs.Count; i++)
             {
-                double dist = currentSpeed * DeltaTimeSec / 3600;
+                double dist = currentSpeed * speedGain * speedCosine * DeltaTimeSec / 3600;
                 double distToPoint = TerrainService.MathEngine.CalcDistance(curr_X, curr_Y, currentRoute.arr_legs[i].ToLongn, currentRoute.arr_legs[i].ToLatn) / 1000;
                 if (distToPoint > dist)
                 {
@@ -187,6 +235,62 @@ namespace TDSServer.GroundTask
         public bool bVisibleToClient
         {
             get { return true; }
+        }
+
+        public void setOffsetInCollision()
+        {
+            // get atom's avoidance side probability - TODO get from database
+            double avoidanceSideProbability = 0.5;
+
+            Random rand = new Random();
+
+            if (rand.NextDouble() > avoidanceSideProbability)
+            {
+                // take the other side if this side is blocked
+                if (currentLegOffset + OFFSET_IN_COLLISION <= MAX_OFFSET)
+                    currentLegOffset += OFFSET_IN_COLLISION;
+                else
+                    currentLegOffset += OFFSET_IN_COLLISION;
+            }
+            else
+            {
+                // take the other side if this side is blocked
+                if (currentLegOffset - OFFSET_IN_COLLISION >= -MAX_OFFSET)
+                    currentLegOffset -= OFFSET_IN_COLLISION;
+                else
+                    currentLegOffset += OFFSET_IN_COLLISION;
+            }
+        }
+
+        public double getDirection()
+        {
+            int leg;
+
+            if (currentRoute == null) return 0;
+
+            if (currentLeg >= currentRoute.arr_legs.Count)
+            {
+                leg = currentRoute.arr_legs.Count - 1;
+            }
+            else
+            {
+                leg = currentLeg;
+            }
+
+            double fromX = currentRoute.arr_legs[leg].FromLongn;
+            double toX = currentRoute.arr_legs[leg].ToLongn;
+            double fromY = currentRoute.arr_legs[leg].FromLatn;
+            double toY = currentRoute.arr_legs[leg].ToLatn;
+
+            return Util.calcAngle(fromX, fromY, toX, toY);
+        }
+
+        public Boolean inFrontOfAtom(clsGroundAtom anotherAtom)
+        {
+            // calculate the angle between this atom and another atom
+            double relativeDirection = Util.calcAngle(curr_X, curr_Y, anotherAtom.curr_X, anotherAtom.curr_Y);
+            return relativeDirection < clsGroundAtom.FIELD_OF_VIEW_RADIANS / 2
+                                         || relativeDirection > 2 * Math.PI - clsGroundAtom.FIELD_OF_VIEW_RADIANS / 2;
         }
     }
 }

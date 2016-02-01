@@ -95,6 +95,7 @@ namespace TDSServer
         public ushort FontKey;       
         public ushort CountryId;
         public bool isCollision;
+        public double currentLegOffset;
 
 
     }
