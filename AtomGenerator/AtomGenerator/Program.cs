@@ -174,6 +174,76 @@ namespace AtomGenerator
         }
     }
 
+    class RouteGenerator
+    {
+        private String connectionParams;
+
+        public RouteGenerator(String connectionParams)
+        {
+            this.connectionParams = connectionParams;
+        }
+
+        public void generateReversedRoute(String routeName)
+        {
+            generateReversedRoute(routeName, routeName + "_reversed");
+        }
+
+        public void generateReversedRoute(String routeName, String reversedRouteName)
+        {
+            RoutesReader routesReader = new RoutesReader(connectionParams);
+            Route route = routesReader.readRouteByName(routeName);
+            Route reversedRoute = new Route();
+            reversedRoute.guid = Util.CreateGuid();
+            reversedRoute.name = reversedRouteName;
+            reversedRoute.owner = route.owner;
+            reversedRoute.routeTypeId = route.routeTypeId;
+            reversedRoute.routePoints = new List<DPoint>();
+
+            // copy points to reversed route
+            foreach (DPoint point in route.routePoints)
+            {
+                reversedRoute.routePoints.Add(point);
+            }
+
+            // reverse route points
+            reversedRoute.routePoints.Reverse();
+
+            //after reading route generate a new GUID for it, change its name and reverse its route points
+            saveRouteToDB(reversedRoute);
+        }
+
+        public void saveRouteToDB(Route route)
+        {
+            // add the route itself
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlCommand addRouteCommand = new NpgsqlCommand("INSERT INTO routes(route_guid, route_name, countryid, routetypeid, owner) VALUES (:guid, :name, :countryId, :typeid, :owner)", connection);
+            addRouteCommand.Parameters.Add(new NpgsqlParameter("guid", route.guid));
+            addRouteCommand.Parameters.Add(new NpgsqlParameter("name", route.name));
+            addRouteCommand.Parameters.Add(new NpgsqlParameter("countryId", route.countryId));
+            addRouteCommand.Parameters.Add(new NpgsqlParameter("typeid", route.routeTypeId));
+            addRouteCommand.Parameters.Add(new NpgsqlParameter("owner", route.owner != null ? route.owner : ""));
+            addRouteCommand.ExecuteNonQuery();
+            connection.Close();
+
+            // add its points
+            for (int i = 0; i < route.routePoints.Count; i++)
+            {
+                connection = new NpgsqlConnection(connectionParams);
+                connection.Open();
+                String query = "INSERT INTO routes_points(route_guid, point_num, pointx, pointy)"
+                             + " VALUES (:guid, :point_num, :x, :y)";
+                NpgsqlCommand addRoutePointsCommand = new NpgsqlCommand(query, connection);
+                addRoutePointsCommand.Parameters.Add(new NpgsqlParameter("guid", route.guid));
+                addRoutePointsCommand.Parameters.Add(new NpgsqlParameter("point_num", i));
+                addRoutePointsCommand.Parameters.Add(new NpgsqlParameter("x", route.routePoints[i].x));
+                addRoutePointsCommand.Parameters.Add(new NpgsqlParameter("y", route.routePoints[i].y));
+                addRoutePointsCommand.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+    }
+
     class AtomGenerator
     {
         private String connectionParams;
@@ -181,6 +251,25 @@ namespace AtomGenerator
         public AtomGenerator(String connectionParams)
         {
             this.connectionParams = connectionParams;
+        }
+
+        public void deleteAllAtomsAndActivities()
+        {
+            // delete all atoms
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            String query = "TRUNCATE table atomobjects";
+            NpgsqlCommand command = new NpgsqlCommand(query, connection);
+            command.ExecuteNonQuery();
+            connection.Close();
+
+            // delete all activities
+            connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            query = "TRUNCATE table activites";
+            command = new NpgsqlCommand(query, connection);
+            command.ExecuteNonQuery();
+            connection.Close();
         }
 
         public void createAtom(AtomObject atom)
@@ -259,9 +348,18 @@ namespace AtomGenerator
         {
             for (int i = 0; i < 50; i++)
             {
-                double offsetX = Util.rand.NextDouble() * 0.0001 - 0.00005;
-                double offsetY = Util.rand.NextDouble() * 0.0001 - 0.00005;
-                AtomObject atom = new AtomObject(route.name + i, 0, route.routePoints[0].x + offsetX, route.routePoints[0].y + offsetY);
+                double scatterLength = 0.0002;
+                double offset = Util.rand.NextDouble();
+
+                double firstLegDeltaX = route.routePoints[1].x - route.routePoints[0].x;
+                double firstLegDeltaY = route.routePoints[1].y - route.routePoints[0].y;
+
+                double length = Math.Sqrt(firstLegDeltaX * firstLegDeltaX + firstLegDeltaY * firstLegDeltaY);
+
+                double scatterX = (scatterLength / length) * firstLegDeltaX;
+                double scatterY = (scatterLength / length) * firstLegDeltaY;
+
+                AtomObject atom = new AtomObject(route.name + i, 0, route.routePoints[0].x - scatterX*offset, route.routePoints[0].y - scatterY*offset);
 
                 // generate new random number for start time - for now between 0:01 to 1:30
                 int minutes = Util.rand.Next(2);
@@ -280,6 +378,9 @@ namespace AtomGenerator
             String connectionParams = "Server=localhost;Port=5432;User Id=postgres;Password=yy11yy11;Database=TDS;";
             RoutesReader routesReader = new RoutesReader(connectionParams);
             AtomGenerator generator = new AtomGenerator(connectionParams);
+            RouteGenerator routeGenerator = new RouteGenerator(connectionParams);
+
+            generator.deleteAllAtomsAndActivities();
 
             Route rightRoute = routesReader.readRouteByName("RightToLeft");
             Route leftRoute = routesReader.readRouteByName("LeftToRight");

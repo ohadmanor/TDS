@@ -16,7 +16,6 @@ namespace TDSServer.GroundTask
         public DAreaRect QuadTreeBounds;
         public bool isCollision;
 
-        private const double OFFSET_IN_COLLISION = 0.3F;
         public const double MAX_OFFSET = 10;
 
         // compare yourself to others only in this radius
@@ -24,6 +23,10 @@ namespace TDSServer.GroundTask
 
         // human field of view - 120 degrees (in radians of course, to make our lives easier)
         public const double FIELD_OF_VIEW_RADIANS = 120 * Math.PI / 180;
+
+        // human radius
+        public const double RADIUS = 1;
+        private const double OFFSET_IN_COLLISION = 1.5;
 
         private int m_currentLeg;
         private int m_age;
@@ -98,7 +101,7 @@ namespace TDSServer.GroundTask
         {
             m_GameObject = pGameObject;
             ChangeState(new ADMINISTRATIVE_STATE());
-            m_personalSpace = 0.5;
+            m_personalSpace = RADIUS;
             m_speedGain = 1;
             m_speedCosine = 1;
 
@@ -181,8 +184,31 @@ namespace TDSServer.GroundTask
                     {
                         deltaX = ((currentRoute.arr_legs[i].ToLongn - currentRoute.arr_legs[i].FromLongn) * dist) / curDist;
                         deltaY = ((currentRoute.arr_legs[i].ToLatn - currentRoute.arr_legs[i].FromLatn) * dist) / curDist;
-                        curr_X = curr_X + deltaX;
-                        curr_Y = curr_Y + deltaY;
+
+                        Boolean moveIsValid = true;
+
+                        // before moving to new position check if new position is valid
+                        List<clsGroundAtom> collisionAtoms = this.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(curr_X + deltaX, curr_Y + deltaY, 2*clsGroundAtom.RADIUS, isPrecise: true);
+                        foreach (clsGroundAtom atom in collisionAtoms)
+                        {
+                            if (atom != this && Math.Abs(currentLegOffset - atom.currentLegOffset) <= clsGroundAtom.RADIUS)
+                            {
+                                moveIsValid = false;
+                            }
+                        }
+
+                        // move to new position only if it is valid
+                        if (moveIsValid)
+                        {
+                            isCollision = false;
+                            curr_X = curr_X + deltaX;
+                            curr_Y = curr_Y + deltaY;
+                        }
+                        else
+                        {
+                            isCollision = true;
+                            evadeUsingSocialComparison();
+                        }
                     }
 
                     m_GameObject.m_GameManager.QuadTreeGroundAtom.PositionUpdate(this);
@@ -237,31 +263,6 @@ namespace TDSServer.GroundTask
             get { return true; }
         }
 
-        public void setOffsetInCollision()
-        {
-            // get atom's avoidance side probability - TODO get from database
-            double avoidanceSideProbability = 0.5;
-
-            Random rand = new Random();
-
-            if (rand.NextDouble() > avoidanceSideProbability)
-            {
-                // take the other side if this side is blocked
-                if (currentLegOffset + OFFSET_IN_COLLISION <= MAX_OFFSET)
-                    currentLegOffset += OFFSET_IN_COLLISION;
-                else
-                    currentLegOffset += OFFSET_IN_COLLISION;
-            }
-            else
-            {
-                // take the other side if this side is blocked
-                if (currentLegOffset - OFFSET_IN_COLLISION >= -MAX_OFFSET)
-                    currentLegOffset -= OFFSET_IN_COLLISION;
-                else
-                    currentLegOffset += OFFSET_IN_COLLISION;
-            }
-        }
-
         public double getDirection()
         {
             int leg;
@@ -291,6 +292,90 @@ namespace TDSServer.GroundTask
             double relativeDirection = Util.calcAngle(curr_X, curr_Y, anotherAtom.curr_X, anotherAtom.curr_Y);
             return relativeDirection < clsGroundAtom.FIELD_OF_VIEW_RADIANS / 2
                                          || relativeDirection > 2 * Math.PI - clsGroundAtom.FIELD_OF_VIEW_RADIANS / 2;
+        }
+
+        public double getAngleBetweenAtom(clsGroundAtom anotherAtom)
+        {
+            double myDirection = getDirection();
+            double hisDirection = anotherAtom.getDirection();
+
+            double diff1 = (myDirection - hisDirection);
+            if (diff1 < 0) diff1 += Math.PI * 2;
+            double diff2 = (hisDirection - myDirection) % (2 * Math.PI);
+            if (diff2 < 0) diff2 += Math.PI * 2;
+
+            return Math.Min(diff1, diff2);
+        }
+
+        public bool isMovingTowardsAtom(clsGroundAtom atom)
+        {
+            return getAngleBetweenAtom(atom) > Math.PI / 2;
+        }
+
+        private void evadeUsingSocialComparison()
+        {
+            bool canEvadeToTheLeftSide = true;
+            bool canEvadeToTheRightSide = true;
+
+            // reached right boundary of sidewalk
+            if (currentLegOffset + OFFSET_IN_COLLISION > MAX_OFFSET) canEvadeToTheRightSide = false;
+            // reached left boundary of sidewalk
+            if (currentLegOffset - OFFSET_IN_COLLISION < -MAX_OFFSET) canEvadeToTheLeftSide = false;
+
+            // if there is only one side available to evade go there with no further questions
+            if (!canEvadeToTheLeftSide && canEvadeToTheRightSide)
+            {
+                // evade to the right side
+                addOffset(OFFSET_IN_COLLISION);
+                return;
+            }
+            else if (!canEvadeToTheRightSide && canEvadeToTheLeftSide)
+            {
+                // evade to the left side
+                addOffset(-OFFSET_IN_COLLISION);
+                return;
+            }
+
+            // if you cannot evade to any of the sides - tough luck
+
+            // if both sides are available go to the most similar atom
+            if (canEvadeToTheLeftSide && canEvadeToTheRightSide)
+            {
+                // if both sides are available, evade to the side where the atom which is most similar to me is
+                clsGroundAtom mostSimilarAtom = SocialComparison.findMostSimilar(this);
+                if (mostSimilarAtom != null && mostSimilarAtom != this)
+                {
+                    if (currentLegOffset == mostSimilarAtom.currentLegOffset)
+                    {
+                        addOffset(Util.rand.NextDouble() > 0.5 ? OFFSET_IN_COLLISION : -OFFSET_IN_COLLISION);
+                    }
+                    else
+                    {
+                        currentLegOffset = mostSimilarAtom.currentLegOffset;
+                    }
+                    
+                }
+                else
+                {
+                    // if there is no one to compare myself to, choose side arbitrarily
+                    addOffset(Util.rand.NextDouble() > 0.5 ? OFFSET_IN_COLLISION : -OFFSET_IN_COLLISION);
+                }
+            }
+        }
+
+        public void addOffset(double offset)
+        {
+            if (offset > 0)
+            {
+                if (currentLegOffset + offset > MAX_OFFSET) currentLegOffset = MAX_OFFSET;
+                else currentLegOffset += offset;
+            }
+            else
+            {
+                // offset <= 0
+                if (currentLegOffset + offset < -MAX_OFFSET) currentLegOffset = -MAX_OFFSET;
+                else currentLegOffset += offset;
+            }
         }
     }
 }
