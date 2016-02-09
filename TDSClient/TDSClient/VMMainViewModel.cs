@@ -784,7 +784,7 @@ namespace TDSClient
                                                   System.Globalization.CultureInfo.GetCultureInfo("en-us"),
                                                   System.Windows.FlowDirection.LeftToRight,
                                                   new System.Windows.Media.Typeface("Wingdings 2"),
-                                                  42, curBrush);
+                                                  22, curBrush);
 
                 frm2.TextAlignment = System.Windows.TextAlignment.Center;
 
@@ -793,7 +793,7 @@ namespace TDSClient
               w = 0;
               double h = frm2.Height / 2;
              //   dc.DrawText(frm2, new System.Windows.Point(PixelX, PixelY - frm2.Height / 2));
-                dc.DrawText(frm2, new System.Windows.Point(PixelX + w, PixelY -h));
+                dc.DrawText(frm2, new System.Windows.Point(PixelX + w, PixelY -h + refGroundAtom.currentLegOffset));
 
 
 
