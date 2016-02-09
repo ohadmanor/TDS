@@ -30,7 +30,6 @@ C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\GMap.NET.Core.dll
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\GMap.NET.WindowsPresentation.dll
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\Microsoft.AspNet.SignalR.Client.dll
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\Newtonsoft.Json.dll
-C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\System.Net.Http.Formatting.dll
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\TerrainService.dll
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\Xceed.Wpf.AvalonDock.dll
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\Xceed.Wpf.AvalonDock.Themes.Aero.dll
@@ -44,7 +43,6 @@ C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\GMap.NET.Core.pdb
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\GMap.NET.WindowsPresentation.pdb
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\Microsoft.AspNet.SignalR.Client.xml
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\Newtonsoft.Json.xml
-C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\System.Net.Http.Formatting.xml
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\TerrainService.pdb
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\System.Data.SQLite.xml
 C:\Develope\TDS\TDSClient\TDSClient\bin\Debug\GlobalMapperUtil.pdb

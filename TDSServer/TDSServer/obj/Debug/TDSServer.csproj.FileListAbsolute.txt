@@ -11,7 +11,6 @@ C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\Microsoft.Owin.Security.dll
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\Newtonsoft.Json.dll
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\Npgsql.dll
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\Owin.dll
-C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\System.Net.Http.Formatting.dll
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\System.Web.Cors.dll
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\TerrainService.dll
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\GlobalMapperUtil.dll
@@ -24,7 +23,6 @@ C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\Microsoft.Owin.Hosting.xml
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\Microsoft.Owin.Security.xml
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\Newtonsoft.Json.xml
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\Npgsql.xml
-C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\System.Net.Http.Formatting.xml
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\TerrainService.pdb
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\GlobalMapperUtil.pdb
 C:\Develope\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.csprojResolveAssemblyReference.cache
