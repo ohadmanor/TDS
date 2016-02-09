@@ -4,16 +4,16 @@
 winexe
 C#
 .cs
-C:\Develope\TDS\TDSClient\TDSClient\obj\Debug\
+C:\dev\TDS\TDSClient\TDSClient\obj\Debug\
 TDSClient
 none
 false
 DEBUG;TRACE
-C:\Develope\TDS\TDSClient\TDSClient\App.xaml
+C:\dev\TDS\TDSClient\TDSClient\App.xaml
 10-718011111
 490575914
 28-1551594606
-271641195629
+27812556827
 Forms\frmActivities.xaml;Forms\frmActivityEdit.xaml;Forms\frmActorEdit.xaml;Forms\frmActorsList.xaml;Forms\frmMapWMSLayers.xaml;Forms\frmRouteActivityRouting.xaml;Forms\frmRouteEditOSMRouting.xaml;Forms\frmRouteList.xaml;Forms\frmSearchAtom.xaml;MainWindow.xaml;
 
 False

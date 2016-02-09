@@ -460,6 +460,8 @@ namespace TDSServer
                 CommonPropertyObject.Y = refGroundAtom.curr_Y;
 
                 CommonPropertyObject.isCollision = refGroundAtom.isCollision;
+                CommonPropertyObject.currentLegOffset = refGroundAtom.currentLegOffset;
+                
 
                 TransportCommonProperty.Add(CommonPropertyObject);
                
