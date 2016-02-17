@@ -182,7 +182,6 @@ namespace TDSClient.SAGInterface
         public ushort FontKey;
         public ushort CountryId;
         public bool isCollision;
-        public double currentLegOffset;
 
     }
     public struct structTransport2Client

@@ -11,7 +11,6 @@ namespace TDSServer
 {
     public class Util
     {
-        public static readonly Random rand = new Random();
         internal const string ENCRYPT_DECRYPT_KEY = "19541954";
         private static byte[] Encrypt1(byte[] clearData, byte[] Key, byte[] IV)
         {
@@ -118,39 +117,59 @@ namespace TDSServer
 
         }
 
-        public static double calcAngle(double x1, double y1, double x2, double y2)
+
+        public static float Azimuth2Points(double x1, double y1, double X2, double Y2)
         {
-            double diffX = x2 - x1;
-            double diffY = y2 - y1;
 
-            // Math.atan returns angle between [-pi/2, pi/2] and I need to convert it to [0, 2pi]
-            double angle = Math.Atan(diffY / diffX);
+           // return (float)TerrainService.MathEngine.CalcBearing(x1, y1, X2, Y2);
 
-            // first quarter is good
-            // second quarter needs an addition of pi because input is negative
-            if (diffX < 0 && diffY > 0) angle += Math.PI;
-            // third quarter also needs an addition of PI
-            if (diffX < 0 && diffY < 0) angle += Math.PI;
-            // fourth quarter needs an addition of 2PI
-            if (diffX > 0 && diffY < 0) angle += 2 * Math.PI;
+            double azim = 0;
+            double azim1 = 0;
+            const double PI = 3.14159265358979;
+            // const double Deg360 = 2 * PI;
 
-            return angle;
-        }
-
-        public static double calcAngle(double diffX, double diffY)
-        {
-            // Math.atan returns angle between [-pi/2, pi/2] and I need to convert it to [0, 2pi]
-            double angle = Math.Atan(diffY / diffX);
-
-            // first quarter is good
-            // second quarter needs an addition of pi because input is negative
-            if (diffX < 0 && diffY > 0) angle += Math.PI;
-            // third quarter also needs an addition of PI
-            if (diffX < 0 && diffY < 0) angle += Math.PI;
-            // fourth quarter needs an addition of 2PI
-            if (diffX > 0 && diffY < 0) angle += 2 * Math.PI;
-
-            return angle;
+            if (Y2 == y1)
+            {
+                if (X2 > x1)
+                {
+                    azim = 90;
+                }
+                else
+                {
+                    azim = 270;
+                }
+                return (float)azim;
+            }
+            if (X2 == x1)
+            {
+                if (Y2 > y1)
+                {
+                    azim = 0;
+                }
+                else
+                {
+                    azim = 180;
+                }
+                return (float)azim;
+            }
+            azim1 = (System.Math.Atan((X2 - x1) / (Y2 - y1)) * (180 / PI));
+            if (X2 > x1 && Y2 > y1)
+            {
+                azim = azim1;
+            }
+            else if (X2 > x1 && Y2 < y1)
+            {
+                azim = 180 + azim1;
+            }
+            else if (X2 < x1 && Y2 < y1)
+            {
+                azim = 180 + azim1;
+            }
+            else if (X2 < x1 && Y2 > y1)
+            {
+                azim = 360 + azim1;
+            }
+            return (float)azim;
         }
     }
 }

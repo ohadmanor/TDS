@@ -320,6 +320,7 @@ namespace TDSClient
         public string strRoadRoutingWebApiAddress;
         public string strWMSGeoserverUrl;
         private GMapEx p_objMap = null;
+
         public GMapEx MyMainMap
         {
             get
@@ -622,7 +623,25 @@ namespace TDSClient
 
         void hubConnection_Closed()
         {
-            //  throw new NotImplementedException();
+            try
+            {
+
+                hubConnection.Closed -= hubConnection_Closed;
+                hubConnection.Stop();
+                hubConnection.Dispose();
+                hubConnection = null;
+
+                CreateHubConnection();
+
+               
+               
+
+
+            }
+            catch (Exception ex)
+            {
+
+            }
         }
 
         private void Run()
@@ -784,7 +803,7 @@ namespace TDSClient
                                                   System.Globalization.CultureInfo.GetCultureInfo("en-us"),
                                                   System.Windows.FlowDirection.LeftToRight,
                                                   new System.Windows.Media.Typeface("Wingdings 2"),
-                                                  22, curBrush);
+                                                  42, curBrush);
 
                 frm2.TextAlignment = System.Windows.TextAlignment.Center;
 
@@ -793,7 +812,7 @@ namespace TDSClient
               w = 0;
               double h = frm2.Height / 2;
              //   dc.DrawText(frm2, new System.Windows.Point(PixelX, PixelY - frm2.Height / 2));
-                dc.DrawText(frm2, new System.Windows.Point(PixelX + w, PixelY -h + refGroundAtom.currentLegOffset));
+                dc.DrawText(frm2, new System.Windows.Point(PixelX + w, PixelY -h));
 
 
 
