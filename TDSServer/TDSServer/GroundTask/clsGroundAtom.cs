@@ -25,8 +25,8 @@ namespace TDSServer.GroundTask
         public const double FIELD_OF_VIEW_RADIANS = 120 * Math.PI / 180;
 
         // human radius
-        public const double RADIUS = 1;
-        private const double OFFSET_IN_COLLISION = 1.5;
+        public const double RADIUS = 0.5;
+        private const double OFFSET_IN_COLLISION = 2;
 
         private int m_currentLeg;
         private int m_age;
@@ -191,7 +191,7 @@ namespace TDSServer.GroundTask
                         List<clsGroundAtom> collisionAtoms = this.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(curr_X + deltaX, curr_Y + deltaY, 2*clsGroundAtom.RADIUS, isPrecise: true);
                         foreach (clsGroundAtom atom in collisionAtoms)
                         {
-                            if (atom != this && Math.Abs(currentLegOffset - atom.currentLegOffset) <= clsGroundAtom.RADIUS)
+                            if (atom != this && Math.Abs(currentLegOffset - atom.currentLegOffset) <= 2*clsGroundAtom.RADIUS)
                             {
                                 moveIsValid = false;
                             }
@@ -351,7 +351,7 @@ namespace TDSServer.GroundTask
                     }
                     else
                     {
-                        currentLegOffset = mostSimilarAtom.currentLegOffset;
+                        addOffset(Math.Sign(mostSimilarAtom.currentLegOffset - currentLegOffset) * OFFSET_IN_COLLISION);
                     }
                     
                 }
