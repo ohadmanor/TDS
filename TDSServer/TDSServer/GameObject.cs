@@ -89,8 +89,15 @@ namespace TDSServer
                 clsGroundAtom GroundAtom = new clsGroundAtom(this);
                 GroundAtom.MyName = atom.UnitName;
                 GroundAtom.GUID = atom.UnitGuid;
+
+                GroundAtom.X_Route = atom.Location.x;
+                GroundAtom.Y_Route = atom.Location.y;
+
                 GroundAtom.curr_X = atom.Location.x;
                 GroundAtom.curr_Y = atom.Location.y;
+
+
+
                 GroundAtomObjectCollection.TryAdd(GroundAtom.GUID, GroundAtom);
 
                 m_GameManager.QuadTreeGroundAtom.PositionUpdate(GroundAtom);
@@ -460,8 +467,6 @@ namespace TDSServer
                 CommonPropertyObject.Y = refGroundAtom.curr_Y;
 
                 CommonPropertyObject.isCollision = refGroundAtom.isCollision;
-                CommonPropertyObject.currentLegOffset = refGroundAtom.currentLegOffset;
-                
 
                 TransportCommonProperty.Add(CommonPropertyObject);
                

@@ -27,7 +27,6 @@ C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\Npgsql.xml
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\System.Net.Http.Formatting.xml
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\TerrainService.pdb
 C:\Develope\TDS\TDSServer\TDSServer\bin\Debug\GlobalMapperUtil.pdb
-C:\Develope\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.csprojResolveAssemblyReference.cache
 C:\Develope\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.Form1.resources
 C:\Develope\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.Properties.Resources.resources
 C:\Develope\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.csproj.GenerateResource.Cache
@@ -60,9 +59,9 @@ C:\dev\TDS\TDSServer\TDSServer\bin\Debug\Newtonsoft.Json.xml
 C:\dev\TDS\TDSServer\TDSServer\bin\Debug\Npgsql.xml
 C:\dev\TDS\TDSServer\TDSServer\bin\Debug\TerrainService.pdb
 C:\dev\TDS\TDSServer\TDSServer\bin\Debug\GlobalMapperUtil.pdb
+C:\dev\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.csprojResolveAssemblyReference.cache
 C:\dev\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.Form1.resources
 C:\dev\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.Properties.Resources.resources
 C:\dev\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.csproj.GenerateResource.Cache
 C:\dev\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.exe
 C:\dev\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.pdb
-C:\dev\TDS\TDSServer\TDSServer\obj\Debug\TDSServer.csprojResolveAssemblyReference.cache

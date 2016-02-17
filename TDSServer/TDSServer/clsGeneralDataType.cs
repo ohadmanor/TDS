@@ -95,7 +95,6 @@ namespace TDSServer
         public ushort FontKey;       
         public ushort CountryId;
         public bool isCollision;
-        public double currentLegOffset;
 
 
     }
@@ -139,6 +138,12 @@ namespace TDSServer
         public double MapHomeCenterY;
     }
 
+
+    public class CollisionTime
+    {
+        public string name;
+        public DateTime time;
+    }
 
     public sealed class typLegSector
     {        
