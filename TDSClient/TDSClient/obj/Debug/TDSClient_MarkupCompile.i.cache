@@ -16,5 +16,5 @@ C:\dev\TDS\TDSClient\TDSClient\App.xaml
 27812556827
 Forms\frmActivities.xaml;Forms\frmActivityEdit.xaml;Forms\frmActorEdit.xaml;Forms\frmActorsList.xaml;Forms\frmMapWMSLayers.xaml;Forms\frmRouteActivityRouting.xaml;Forms\frmRouteEditOSMRouting.xaml;Forms\frmRouteList.xaml;Forms\frmSearchAtom.xaml;MainWindow.xaml;
 
-True
+False
 

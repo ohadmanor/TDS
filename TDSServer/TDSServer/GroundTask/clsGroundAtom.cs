@@ -16,10 +16,10 @@ namespace TDSServer.GroundTask
         public DAreaRect QuadTreeBounds;
         public bool isCollision;
 
-        public const double MAX_OFFSET = 10;
+        public const double MAX_OFFSET = 5;
         // human radius
         public const double RADIUS = 0.5;
-        public const double OFFSET_IN_COLLISION = 2;
+        public const double OFFSET_IN_COLLISION = 1;
 
         public double X_Distination;
         public double Y_Distination;

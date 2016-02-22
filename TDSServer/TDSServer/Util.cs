@@ -12,6 +12,8 @@ namespace TDSServer
     public class Util
     {
         internal const string ENCRYPT_DECRYPT_KEY = "19541954";
+        public static readonly Random random = new Random();
+
         private static byte[] Encrypt1(byte[] clearData, byte[] Key, byte[] IV)
         {
             // Create a MemoryStream to accept the encrypted bytes 

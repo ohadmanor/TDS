@@ -250,6 +250,11 @@ namespace AtomGenerator
             query = "TRUNCATE table activites";
             command.CommandText = query;
             command.ExecuteNonQuery();
+
+            // delete all tree objects
+            query = "TRUNCATE table treeobject";
+            command.CommandText = query;
+            command.ExecuteNonQuery();
         }
 
         public void createAtom(AtomObject atom)
@@ -267,6 +272,8 @@ namespace AtomGenerator
 
         public void createActivityToAtom(Activity activity, AtomObject atom)
         {
+            // TODO - read from sequence
+
             String query = "INSERT INTO activites(activityid, atom_guid, activity_seqnumber, activitytype,"
                 + " startactivityoffset, durationactivity, speed, route_guid, referencepointx, referencepointy)"
                 + " VALUES (:id, :atomGuid, :activitySeq, :activityType, :startOffset, :duration, :speed, :routeGuid, :refX, :refY)";
@@ -282,6 +289,8 @@ namespace AtomGenerator
             command.Parameters.Add(new NpgsqlParameter("refX", activity.refX));
             command.Parameters.Add(new NpgsqlParameter("refY", activity.refY));
             command.ExecuteNonQuery();
+
+            // TODO - increment seuquence
         }
 
         public void addAtomToTreeObject(AtomObject atom)
@@ -315,9 +324,9 @@ namespace AtomGenerator
 
     class Program
     {
-        static void addAtomsToRoute(Route route, AtomGenerator generator)
+        static void addAtomsToRoute(Route route, AtomGenerator generator, int count)
         {
-            for (int i = 0; i < 50; i++)
+            for (int i = 0; i < count; i++)
             {
                 double scatterLength = 0.0002;
                 double offset = Util.rand.NextDouble();
@@ -341,7 +350,7 @@ namespace AtomGenerator
                                                  "00:00:01", speed, route.guid, route.routePoints[0].x, route.routePoints[0].y);
                 generator.createAtom(atom);
                 generator.createActivityToAtom(activity, atom);
-                //generator.addAtomToTreeObject(atom);
+                generator.addAtomToTreeObject(atom);
             }
         }
         static void Main(string[] args)
@@ -359,11 +368,15 @@ namespace AtomGenerator
                 RouteGenerator routeGenerator = new RouteGenerator(connection);
 
                 generator.deleteAllAtomsAndActivities();
-                Route rightRoute = routesReader.readRouteByName("RightToLeft");
-                Route leftRoute = routesReader.readRouteByName("LeftToRight");
+                Route source1 = routesReader.readRouteByName("LeftToRight");
+                Route source2 = routesReader.readRouteByName("RightToLeft");
+                //Route source3 = routesReader.readRouteByName("Source3");
+                //Route cornerRoute = routesReader.readRouteByName("Corner");
 
-                addAtomsToRoute(rightRoute, generator);
-                addAtomsToRoute(leftRoute, generator);
+                addAtomsToRoute(source1, generator, 100);
+                addAtomsToRoute(source2, generator, 100);
+                //addAtomsToRoute(source3, generator, 100);
+                //addAtomsToRoute(cornerRoute, generator);
 
                 transaction.Commit();
             }
