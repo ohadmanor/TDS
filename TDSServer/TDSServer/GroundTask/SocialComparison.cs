@@ -18,12 +18,12 @@ namespace TDSServer.GroundTask
         {
             double distanceReciproc = 1 / TerrainService.MathEngine.CalcDistance(me.curr_X, me.curr_Y, other.curr_X, other.curr_Y);
 
-            if (getAzimuthDifferenceDegrees(me, other) > SAME_DIRECTION_MARGIN_DEGREES)
+            if (Util.getAzimuthDifferenceDegrees(me.currentAzimuth, other.currentAzimuth) > SAME_DIRECTION_MARGIN_DEGREES)
             {
                 return 0;
             }
             if (distanceReciproc > 1) return 0;
-            else return 2 + 2*distanceReciproc;
+            else return 2 + 2 * distanceReciproc;
         }
 
         // get the atom with the highest Sim() value to me
@@ -57,12 +57,29 @@ namespace TDSServer.GroundTask
             return mostSimilarAtom;
         }
 
-        private static double getAzimuthDifferenceDegrees(clsGroundAtom me, clsGroundAtom other)
+        public static void setOffsetTowardsMostSimilar(clsGroundAtom me, clsGroundAtom mostSimilar)
         {
-            double azim1 = Math.Abs(me.currentAzimuth - other.currentAzimuth);
-            double azim2 = Math.Abs(other.currentAzimuth - me.currentAzimuth);
-
-            return Math.Min(azim1, azim2);
+            // set offset towards most similar atom
+            if (mostSimilar.Offset_Distance - me.Offset_Distance > 0)
+            {
+                me.Offset_Distance += clsGroundAtom.OFFSET_IN_COLLISION;
+            }
+            else if (mostSimilar.Offset_Distance - me.Offset_Distance < 0)
+            {
+                me.Offset_Distance -= clsGroundAtom.OFFSET_IN_COLLISION;
+            }
+            else
+            {
+                // if most similar has the same offset like me choose a side randomly
+                if (Util.random.NextDouble() > 0.5)
+                {
+                    me.Offset_Distance += clsGroundAtom.OFFSET_IN_COLLISION;
+                }
+                else
+                {
+                    me.Offset_Distance -= clsGroundAtom.OFFSET_IN_COLLISION;
+                }
+            }
         }
     }
 }

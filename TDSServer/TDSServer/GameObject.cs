@@ -16,8 +16,13 @@ namespace TDSServer
         private int ExClockResolution = 200;  //200 milisec  5 times per second
 
         public DateTime Ex_clockDate;
+        public DateTime Ex_clockStartDate;
         public DateTime Ex_clockGroundExecute = DateTime.MinValue;
         public Task GroundExecuteStateTask = null;
+
+        private List<CollisionData> collisionData;
+        private long totalCollisions, nonFrontalCollisions, frontalCollisions;
+        private bool explosionOccurred;
 
 
         internal ConcurrentDictionary<string, AtomBase> GroundAtomObjectCollection = new ConcurrentDictionary<string, AtomBase>();
@@ -31,8 +36,13 @@ namespace TDSServer
         internal void InitObjects()
         {
             Ex_clockDate = DateTime.Now;
-            GroundAtomsInit();
+            Ex_clockStartDate = Ex_clockDate;
+            explosionOccurred = false;
 
+            // clear collision report history
+            if (collisionData == null) collisionData = new List<CollisionData>();
+
+            GroundAtomsInit();
             GroundMissionActivitiesInit();
 
         }
@@ -102,6 +112,99 @@ namespace TDSServer
 
                 m_GameManager.QuadTreeGroundAtom.PositionUpdate(GroundAtom);
             }
+        }
+
+        public bool emergencyOccurred()
+        {
+            return (Ex_clockDate - Ex_clockStartDate).Minutes > 2;
+        }
+
+        public DPoint getExplosionLocation()
+        {
+            return new DPoint(34.8497, 32.0996);
+        }
+
+        public double getExplosionRadius()
+        {
+            return 10;
+        }
+
+        private void inflictDamageOnGroundAtoms(DPoint location, double radius)
+        {
+            List<clsGroundAtom> atomsToDamage = m_GameManager.QuadTreeGroundAtom.SearchEntities(location.x, location.y, radius, isPrecise: true);
+            double certainDeathRadius = 0.2*radius;
+
+            foreach (clsGroundAtom atom in atomsToDamage)
+            {
+                // certain death when very close to event source
+                double distanceToEventSource = TerrainService.MathEngine.CalcDistance(atom.curr_X, atom.curr_Y, location.x, location.y);
+                if (distanceToEventSource < certainDeathRadius)
+                {
+                    atom.healthStatus.isDead = true;
+                    continue;
+                }
+
+                // the farther the atom is from the source the less likely he is to die - use linearly decreasing death probability
+                double deathProbability = 0.5*(radius - distanceToEventSource)/(radius - certainDeathRadius);
+                double random = Util.random.NextDouble();
+                if (random <= deathProbability) atom.healthStatus.isDead = true;
+
+                // if he didn't die, make him injured with twice the same probability distribution
+                double injuryProbability = (radius - distanceToEventSource) / (radius - certainDeathRadius);
+                random = Util.random.NextDouble();
+                if (random <= injuryProbability)
+                {
+                    atom.healthStatus.isInjured = true;
+                }
+
+                // incapacitate him with twice the same probability distribution
+                double incapacitanceProbability = 0.5*(radius - distanceToEventSource) / (radius - certainDeathRadius);
+                random = Util.random.NextDouble();
+                if (random <= incapacitanceProbability)
+                {
+                    atom.healthStatus.isIncapacitated = true;
+                    atom.healthStatus.isInjured = true;
+                }
+
+                if (atom.healthStatus.isIncapacitated || atom.healthStatus.isInjured)
+                {
+                    atom.healthStatus.injurySeverity = (radius - distanceToEventSource) / (radius - certainDeathRadius);
+                }
+
+                // make injured atoms move slower
+                if (atom.healthStatus.isInjured)
+                {
+                    atom.currentSpeed *= (1 - atom.healthStatus.injurySeverity);
+                }
+
+                // if he didn't die or was not injured or incapacitated - he's one lucky bastard.
+            }
+        }
+
+        public void writeCollisionReportAndClearData()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            // format the lines to be written
+            foreach (CollisionData data in collisionData)
+            {
+                double timeInterval = (data.date - Ex_clockStartDate).TotalSeconds;
+                sb.AppendLine(String.Format("{0},{1},{2},{3}", timeInterval, data.all, data.nonFrontal, data.frontal));
+            }
+
+            System.IO.File.WriteAllText("collisions.csv", sb.ToString());
+
+            collisionData.Clear();
+            totalCollisions = 0;
+            nonFrontalCollisions = 0;
+            frontalCollisions = 0;
+        }
+
+        public void addCollision(bool isFrontal)
+        {
+            totalCollisions++;
+            if (isFrontal) frontalCollisions++;
+            else nonFrontalCollisions++;
         }
 
         public bool isAtomNameExist(string AtomName)
@@ -393,6 +496,18 @@ namespace TDSServer
                 //  ExClockResolution = 1000;
                   Ex_clockDate = Ex_clockDate.AddMilliseconds(ExClockResolution);
 
+                  // update statistics every second
+                  if ((Ex_clockStartDate - Ex_clockDate).TotalMilliseconds % 10000 == 0)
+                  {
+                      collisionData.Add(new CollisionData(Ex_clockDate, totalCollisions, nonFrontalCollisions, frontalCollisions));
+                  }
+
+                  if (!explosionOccurred && emergencyOccurred())
+                  {
+                      explosionOccurred = true;
+                      inflictDamageOnGroundAtoms(getExplosionLocation(), getExplosionRadius());
+                  }
+
 
 
                   LastExClockTick = Environment.TickCount;
@@ -467,6 +582,9 @@ namespace TDSServer
                 CommonPropertyObject.Y = refGroundAtom.curr_Y;
 
                 CommonPropertyObject.isCollision = refGroundAtom.isCollision;
+                CommonPropertyObject.isDead = refGroundAtom.healthStatus.isDead;
+                CommonPropertyObject.isIncapacitated = refGroundAtom.healthStatus.isIncapacitated;
+                CommonPropertyObject.isInjured = refGroundAtom.healthStatus.isInjured;
 
                 TransportCommonProperty.Add(CommonPropertyObject);
                

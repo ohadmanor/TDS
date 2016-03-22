@@ -173,5 +173,24 @@ namespace TDSServer
             }
             return (float)azim;
         }
+
+        public static double getAzimuthDifferenceDegrees(double azimuth1, double azimuth2)
+        {
+            double azim1 = Math.Abs(azimuth1 - azimuth2);
+            double azim2 = Math.Abs(azimuth2 - azimuth1);
+
+            return Math.Min(azim1, azim2);
+        }
+
+
+        public static void calcProjectedLocation(double x, double y, double azimuth, double azimuthOffset, double distance, out double projectedX, out double projectedY)
+        {
+            double AzimDepl;
+
+            AzimDepl = azimuth + azimuthOffset;
+            if (AzimDepl >= 360) AzimDepl = AzimDepl - 360;
+
+            TerrainService.MathEngine.CalcProjectedLocationNew(x, y, AzimDepl, distance, out projectedX, out projectedY);
+        }
     }
 }

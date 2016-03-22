@@ -95,8 +95,9 @@ namespace TDSServer
         public ushort FontKey;       
         public ushort CountryId;
         public bool isCollision;
-
-
+        public bool isDead;
+        public bool isIncapacitated;
+        public bool isInjured;
     }
     public struct structTransport2Client
     {      
@@ -226,7 +227,22 @@ namespace TDSServer
             }
         } 
     }
-    
+
+    public class CollisionData
+    {
+        public DateTime date;
+        public long all;
+        public long nonFrontal;
+        public long frontal;
+
+        public CollisionData(DateTime date, long all, long nonFrontal, long frontal)
+        {
+            this.date = date;
+            this.all = all;
+            this.nonFrontal = nonFrontal;
+            this.frontal = frontal;
+        }
+    }
 
     public class DPoint
     {

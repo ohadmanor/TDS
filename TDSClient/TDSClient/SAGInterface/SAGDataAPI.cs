@@ -182,6 +182,9 @@ namespace TDSClient.SAGInterface
         public ushort FontKey;
         public ushort CountryId;
         public bool isCollision;
+        public bool isDead;
+        public bool isIncapacitated;
+        public bool isInjured;
 
     }
     public struct structTransport2Client

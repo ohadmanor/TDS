@@ -328,7 +328,7 @@ namespace AtomGenerator
         {
             for (int i = 0; i < count; i++)
             {
-                double scatterLength = 0.0002;
+                double scatterLength = 0.0000;
                 double offset = Util.rand.NextDouble();
 
                 double firstLegDeltaX = route.routePoints[1].x - route.routePoints[0].x;
@@ -345,6 +345,7 @@ namespace AtomGenerator
                 int minutes = Util.rand.Next(2);
                 int seconds = Util.rand.Next(1, 60);
                 int speed = Util.rand.Next(3, 11);
+
                 String secondsString = seconds >= 10 ? seconds.ToString() : "0" + seconds;
                 Activity activity = new Activity(100 + i, atom.guid, 1, 1, "00:0" + minutes + ":" + secondsString,
                                                  "00:00:01", speed, route.guid, route.routePoints[0].x, route.routePoints[0].y);
@@ -368,8 +369,8 @@ namespace AtomGenerator
                 RouteGenerator routeGenerator = new RouteGenerator(connection);
 
                 generator.deleteAllAtomsAndActivities();
-                Route source1 = routesReader.readRouteByName("LeftToRight");
-                Route source2 = routesReader.readRouteByName("RightToLeft");
+                Route source1 = routesReader.readRouteByName("Escape3");
+                Route source2 = routesReader.readRouteByName("Escape3_reversed");
                 //Route source3 = routesReader.readRouteByName("Source3");
                 //Route cornerRoute = routesReader.readRouteByName("Corner");
 
@@ -377,6 +378,11 @@ namespace AtomGenerator
                 addAtomsToRoute(source2, generator, 100);
                 //addAtomsToRoute(source3, generator, 100);
                 //addAtomsToRoute(cornerRoute, generator);
+                AtomObject ambulance = new AtomObject("Ambulance1", -1, 34.8514473088014, 32.1008536878526);
+                generator.createAtom(ambulance);
+                generator.addAtomToTreeObject(ambulance);
+
+                //routeGenerator.generateReversedRoute("Escape3");
 
                 transaction.Commit();
             }

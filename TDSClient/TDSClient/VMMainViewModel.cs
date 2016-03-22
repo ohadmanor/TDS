@@ -786,9 +786,21 @@ namespace TDSClient
 
 
 
-                MyMainMap.ConvertCoordGroundToPixel(refGroundAtom.X, refGroundAtom.Y, ref PixelX, ref PixelY);
 
+                MyMainMap.ConvertCoordGroundToPixel(refGroundAtom.X, refGroundAtom.Y, ref PixelX, ref PixelY);
+                int fontSize = 42;
                 ch = (char)150; //  1000;         //(char)refGroundAtom.FontKey;
+                if (refGroundAtom.isDead)
+                {
+                    //curBrush.Color = System.Windows.Media.Colors.Black;
+                    ch = (char)207;
+                    fontSize = 16;
+                }
+                else if (refGroundAtom.isIncapacitated || refGroundAtom.isInjured)
+                {
+                    ch = (char)204;
+                    fontSize = 16;
+                }
                 //42
 
                 //System.Windows.Media.FormattedText frm2 = new System.Windows.Media.FormattedText(new string(ch, 1),
@@ -803,7 +815,7 @@ namespace TDSClient
                                                   System.Globalization.CultureInfo.GetCultureInfo("en-us"),
                                                   System.Windows.FlowDirection.LeftToRight,
                                                   new System.Windows.Media.Typeface("Wingdings 2"),
-                                                  42, curBrush);
+                                                  fontSize, curBrush);
 
                 frm2.TextAlignment = System.Windows.TextAlignment.Center;
 

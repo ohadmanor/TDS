@@ -29,7 +29,15 @@ namespace TDSServer.GroundTask
         public double Offset_Azimuth = 0;
         public double Offset_Distance = 0;
 
+        public Boolean knowsAboutEmergency;
+
         private int m_currentLeg;
+        private HealthStatus m_healthStatus;
+        public HealthStatus healthStatus
+        {
+            get { return m_healthStatus; }
+            set { m_healthStatus = value; }
+        }
         public int currentLeg
         {
             get { return m_currentLeg; }
@@ -73,7 +81,10 @@ namespace TDSServer.GroundTask
 
         public clsGroundAtom(GameObject pGameObject)
         {
+            knowsAboutEmergency = false;
             m_GameObject = pGameObject;
+            m_healthStatus = new HealthStatus();
+
             ChangeState(new ADMINISTRATIVE_STATE());
         }
 
@@ -122,7 +133,7 @@ namespace TDSServer.GroundTask
                 switch(ActivityFound.ActivityType)
                 {
                     case enumActivity.MovementActivity:
-                        refGroundAtom.ChangeState(new MOVEMENT_STATE(ActivityFound as clsActivityMovement));
+                        refGroundAtom.ChangeState(new REGULAR_MOVEMENT_STATE(ActivityFound as clsActivityMovement));
                         break;
                 }
             }
@@ -263,6 +274,103 @@ namespace TDSServer.GroundTask
 
         }
 
+        public void reRouteToEscape(clsActivityMovement panicMovement)
+        {
+            // form the activity
+            panicMovement.ActivityId = 300;
+            panicMovement.ActivityType = enumActivity.MovementActivity;
+            panicMovement.AtomGuid = GUID;
+            panicMovement.AtomName = MyName;
+            panicMovement.TimeFrom = m_GameObject.Ex_clockDate;
+            panicMovement.StartActivityOffset = TimeSpan.Zero;
+            panicMovement.TimeTo = panicMovement.TimeFrom.Add(TimeSpan.FromDays(365));
+            panicMovement.DurationActivity = TimeSpan.FromSeconds(1);
+            panicMovement.Speed = (int)(currentSpeed*1.5);
+
+            // plan the route
+            String escapeRouteName = "Escape3";
+            String reversedEscapeRouteName = "Escape3_reversed";
+            Route escapeRoute = TDS.DAL.RoutesDB.GetRouteByName(escapeRouteName);
+            Route reversedEscapeRoute = TDS.DAL.RoutesDB.GetRouteByName(reversedEscapeRouteName);
+
+            // find closest route point
+            double minDistance = Double.MaxValue;
+            int minPointIndex = 0;
+            for (int i = 0; i < escapeRoute.Points.Count() - 1; i++)
+            {
+                DPoint from = escapeRoute.Points.ElementAt(i);
+                DPoint to = escapeRoute.Points.ElementAt(i + 1);
+
+                double fromAzim = Util.Azimuth2Points(X_Route, Y_Route, from.x, from.y);
+                double toAzim = Util.Azimuth2Points(X_Route, Y_Route, to.x, to.y);
+
+                if ((from.x == X_Route && from.y == Y_Route)
+                    || (to.x == X_Route && to.y == Y_Route)
+                    || (Util.getAzimuthDifferenceDegrees(fromAzim, toAzim) > 90))
+                {
+                    minPointIndex = i;
+                    break;
+                }
+            }
+
+            DPoint closestFrom = escapeRoute.Points.ElementAt(minPointIndex);
+            DPoint closestTo = escapeRoute.Points.ElementAt(minPointIndex + 1);
+
+            // calculate escape route azimuth close to me in order to determine which route to select
+            double escapeRouteAzimuth = Util.Azimuth2Points(closestFrom.x, closestFrom.y, closestTo.x, closestTo.y);
+            DPoint explosionLocation = m_GameObject.getExplosionLocation();
+            double explosionAzimuth = Util.Azimuth2Points(curr_X, curr_Y, explosionLocation.x, explosionLocation.y);
+
+            if (Util.getAzimuthDifferenceDegrees(explosionAzimuth, escapeRouteAzimuth) < 90)
+            {
+                // if escape route leads to explosion, take the reversed route
+                panicMovement.RouteActivity = TDS.DAL.RoutesDB.GetRouteByName(reversedEscapeRouteName);
+            }
+            else
+            {
+                // if not - take the escape route
+                panicMovement.RouteActivity = TDS.DAL.RoutesDB.GetRouteByName(escapeRouteName);
+            }
+
+            DPoint destPoint = panicMovement.RouteActivity.Points.ElementAt(panicMovement.RouteActivity.Points.Count() - 1);
+
+            panicMovement.isActive = true;
+            panicMovement.isStarted = true;
+            panicMovement.isAborted = false;
+            panicMovement.isEnded = false;
+
+            panicMovement.ReferencePoint = new DPoint(destPoint.x, destPoint.y);
+
+            // check if need to change sign of offset
+            if (panicMovement.RouteActivity.Points.Count() > 1)
+            {
+                DPoint p0 = panicMovement.RouteActivity.Points.ElementAt(0);
+                DPoint p1 = panicMovement.RouteActivity.Points.ElementAt(1);
+
+                double nextAzimuth = Util.Azimuth2Points(p0.x, p0.y, p1.x, p1.y);
+
+                // if rerouting to opposite direction change sign of offset
+                if (Util.getAzimuthDifferenceDegrees(currentAzimuth, nextAzimuth) > 90)
+                {
+                    Offset_Distance *= -1;
+                }
+            }
+
+
+            // add activity to atom
+            List<clsActivityBase> atomActivities;
+            m_GameObject.m_GroundActivities.TryGetValue(GUID, out atomActivities);
+            atomActivities.Add(panicMovement);
+        }
+
+        public void resetMovementData()
+        {
+            X_Route = curr_X;
+            Y_Route = curr_Y;
+            Offset_Azimuth = 0;
+            Offset_Distance = 0;
+        }
+
 
         public new string Key
         {
@@ -287,6 +395,27 @@ namespace TDSServer.GroundTask
         public bool bVisibleToClient
         {
             get { return true; }
+        }
+    }
+
+    public class HealthStatus
+    {
+        public double injurySeverity;
+        public bool isIncapacitated;
+        public bool isInjured;
+        public bool isDead;
+
+        public HealthStatus()
+        {
+            injurySeverity = 0;
+            isIncapacitated = false;
+            isInjured = false;
+            isDead = false;
+        }
+
+        public bool isHealthy()
+        {
+            return !isDead && !isIncapacitated && !isInjured;
         }
     }
 }
