@@ -103,7 +103,8 @@ namespace TDSServer
 
             return null;
         }
-
+		
+		// Yinon Douchan: Only find the shortest path between two points.
         public async Task<typRoute> createRouteByShortestPathOnly(double StartX, double StartY, double ReferencePointX, double ReferencePointY)
         {
             List<DPoint> Result = new List<DPoint>();
@@ -143,7 +144,7 @@ namespace TDSServer
 
             return tRoute;
         }
-
+		// --------------------------------------------------------------------------------------
     }
 }
 

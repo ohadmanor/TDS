@@ -67,7 +67,7 @@ namespace TDSClient.Forms
 
             DataGridCheckBoxColumn col2 = new DataGridCheckBoxColumn();
             col2.Header = "Deployed";
-            col2.MinWidth = 240;
+            //col1.MinWidth = 240;
             col2.CanUserSort = true;
             col2.IsReadOnly = true;
             col2.Binding = new System.Windows.Data.Binding("isDeployed");
@@ -77,7 +77,7 @@ namespace TDSClient.Forms
 
             DataGridCheckBoxColumn col3 = new DataGridCheckBoxColumn();
             col3.Header = Properties.Resources.strActivites;
-            col3.MinWidth = 240;
+            //col1.MinWidth = 240;
             col3.CanUserSort = true;
             col3.IsReadOnly = true;
             col3.Binding = new System.Windows.Data.Binding("isActivityes");

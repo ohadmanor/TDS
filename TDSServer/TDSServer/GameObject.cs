@@ -16,13 +16,15 @@ namespace TDSServer
         private int ExClockResolution = 200;  //200 milisec  5 times per second
 
         public DateTime Ex_clockDate;
-        public DateTime Ex_clockStartDate;
         public DateTime Ex_clockGroundExecute = DateTime.MinValue;
         public Task GroundExecuteStateTask = null;
 
+		// Yinon Douchan: Code for statistics and simulation of explosion
+        public DateTime Ex_clockStartDate;
         private List<CollisionData> collisionData;
         private long totalCollisions, nonFrontalCollisions, frontalCollisions;
         private bool explosionOccurred;
+		// --------------------------------------------------------------
 
 
         internal ConcurrentDictionary<string, AtomBase> GroundAtomObjectCollection = new ConcurrentDictionary<string, AtomBase>();
@@ -36,13 +38,15 @@ namespace TDSServer
         internal void InitObjects()
         {
             Ex_clockDate = DateTime.Now;
+			// Yinon Douchan: Code for statistics and simulation of explosion
             Ex_clockStartDate = Ex_clockDate;
             explosionOccurred = false;
 
             // clear collision report history
             if (collisionData == null) collisionData = new List<CollisionData>();
-
+			// --------------------------------------------------------------
             GroundAtomsInit();
+
             GroundMissionActivitiesInit();
 
         }
@@ -114,6 +118,7 @@ namespace TDSServer
             }
         }
 
+		// Yinon Douchan: Code for statistics and simulation of explosion
         public bool emergencyOccurred()
         {
             return (Ex_clockDate - Ex_clockStartDate).Minutes > 2;
@@ -206,7 +211,7 @@ namespace TDSServer
             if (isFrontal) frontalCollisions++;
             else nonFrontalCollisions++;
         }
-
+		// --------------------------------------------------------------
         public bool isAtomNameExist(string AtomName)
         {
             AtomData atom = TDS.DAL.AtomsDB.GetAtomByName(AtomName);
@@ -496,6 +501,7 @@ namespace TDSServer
                 //  ExClockResolution = 1000;
                   Ex_clockDate = Ex_clockDate.AddMilliseconds(ExClockResolution);
 
+				  // Yinon Douchan: Code for statistics and simulation of explosion
                   // update statistics every second
                   if ((Ex_clockStartDate - Ex_clockDate).TotalMilliseconds % 10000 == 0)
                   {
@@ -507,7 +513,7 @@ namespace TDSServer
                       explosionOccurred = true;
                       inflictDamageOnGroundAtoms(getExplosionLocation(), getExplosionRadius());
                   }
-
+				  // ---------------------------------------------------------------
 
 
                   LastExClockTick = Environment.TickCount;
@@ -582,9 +588,11 @@ namespace TDSServer
                 CommonPropertyObject.Y = refGroundAtom.curr_Y;
 
                 CommonPropertyObject.isCollision = refGroundAtom.isCollision;
+				// Yinon Douchan: Code for simulation of casualties
                 CommonPropertyObject.isDead = refGroundAtom.healthStatus.isDead;
                 CommonPropertyObject.isIncapacitated = refGroundAtom.healthStatus.isIncapacitated;
                 CommonPropertyObject.isInjured = refGroundAtom.healthStatus.isInjured;
+				// -------------------------------------------------
 
                 TransportCommonProperty.Add(CommonPropertyObject);
                

@@ -23,7 +23,6 @@ namespace TDSServer.GroundTask.StateMashine
         public virtual void WaitAllThreadingTask(clsGroundAtom refGroundAtom)
         { }
     }
-
     public class ADMINISTRATIVE_STATE : BasicStateFormGroundTaskOrder
     {
         public override void Enter(clsGroundAtom refGroundAtom)
@@ -32,6 +31,7 @@ namespace TDSServer.GroundTask.StateMashine
         }
         public override void Execute(clsGroundAtom refGroundAtom)
         {
+		    // Yinon Douchan: Code for simulating an ambulance - should be done differently, I know
             if (refGroundAtom.MyName.StartsWith("Ambulance"))
             {
                 refGroundAtom.ChangeState(new AMBULANCE_ADMINISTRATIVE_STATE());
@@ -48,58 +48,50 @@ namespace TDSServer.GroundTask.StateMashine
                 refGroundAtom.ChangeState(new ADMINISTRATIVE_STATE());
                 return;
             }
-
+			// --------------------------------------------------------------------------------------
             clsGroundAtom.CheckNextMission(refGroundAtom);
         }
     }
-
-    public class AMBULANCE_ADMINISTRATIVE_STATE : ADMINISTRATIVE_STATE
-    {
-        public override void Enter(clsGroundAtom refGroundAtom)
-        {
-            base.Enter(refGroundAtom);
-        }
-        public override void Execute(clsGroundAtom refGroundAtom)
-        {
-            if (!refGroundAtom.knowsAboutEmergency && refGroundAtom.m_GameObject.emergencyOccurred())
-            {
-                refGroundAtom.knowsAboutEmergency = true;
-
-                refGroundAtom.resetMovementData();
-                Route straightLine = RoutePlanner.createRoute(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y), refGroundAtom.m_GameObject.getExplosionLocation());
-                clsActivityMovement arrivalMovement = RoutePlanner.createActivityAndStart(refGroundAtom, 80, straightLine);
-
-                refGroundAtom.ChangeState(new AMBULANCE_ARRIVAL_MOVEMENT_STATE(arrivalMovement));
-                return;
-            }
-        }
-    }
-
     public class MOVEMENT_STATE : BasicStateFormGroundTaskOrder
     {
         clsActivityMovement refActivityMovement = null;
-        private MovementSolver movementSolver;
         public MOVEMENT_STATE(clsActivityMovement ActivityMovement)
         {
             refActivityMovement = ActivityMovement;
-            movementSolver = new MovementSolver(refActivityMovement);
-
         }
-
         public async override void Enter(clsGroundAtom refGroundAtom)
         {
             refGroundAtom.currentSpeed = refActivityMovement.Speed;
           //  refGroundAtom.currentRoute = new typRoute(refActivityMovement.RouteActivity);
 
-
+		  	 // Yinon Douchan: Modified next line to plan route from route_x and route_y instead of curr_x and curr_y
              typRoute R= await refGroundAtom.m_GameObject.m_GameManager.refTerrain.CreateRoute(refGroundAtom.X_Route, refGroundAtom.Y_Route, refActivityMovement.ReferencePoint.x, refActivityMovement.ReferencePoint.y, refActivityMovement.RouteActivity.RouteGuid);
+		  	 // -----------------------------------------------------------------------------------
              refGroundAtom.currentRoute = R;
+
 
            // refGroundAtom.SetRoute(refActivityMovement.RouteActivity);
         }
 
+
+
         public override void Execute(clsGroundAtom refGroundAtom)
         {
+            List<CollisionTime> CollisionsToDelete=new List<CollisionTime>();
+            foreach(var v in refGroundAtom.Collisions)
+            {
+                if((refGroundAtom.m_GameObject.Ex_clockDate-v.time).TotalSeconds>2)
+                {
+                    CollisionsToDelete.Add(v);
+                }
+            }
+            foreach (var v in CollisionsToDelete)
+            {
+                refGroundAtom.Collisions.Remove(v);
+            }
+
+        //   refGroundAtom.Collisions.ForEach(t=>(refGroundAtom.m_GameObject.Ex_clockDate-t.time).TotalSeconds>2)
+
              if(refActivityMovement.TimeTo<refGroundAtom.m_GameObject.Ex_clockDate)
              {
                  refActivityMovement.isEnded = true;
@@ -114,13 +106,48 @@ namespace TDSServer.GroundTask.StateMashine
 
             if (refGroundAtom.currentLeg > refGroundAtom.currentRoute.arr_legs.Count)  //-1)  // refActivityMovement.RouteActivity.Points.Count()-1)
             {
+                // Fix 01 Start
+                int nl = refGroundAtom.currentRoute.arr_legs.Count;
+                double xEnd = refGroundAtom.currentRoute.arr_legs[nl - 1].ToLongn;
+                double yEnd = refGroundAtom.currentRoute.arr_legs[nl - 1].ToLatn;
+                refGroundAtom.curr_X = xEnd;
+                refGroundAtom.curr_Y = yEnd;
+                // Fix 01 End
+
+			    // Yinon Douchan: Commented out in order to make movement cyclic.
                 //refActivityMovement.isEnded = true;
                 //refActivityMovement.isActive = false;
                 //refGroundAtom.currentRoute = null;
                 //refGroundAtom.ChangeState(new ADMINISTRATIVE_STATE());
+				// --------------------------------------------------------------
 
-                movementSolver.restartMovementOnRoute(refGroundAtom);
+				// Yinon Douchan: Only for cyclic movement
+                refGroundAtom.currentLeg = 1;
+                refGroundAtom.X_Route = refGroundAtom.currentRoute.arr_legs[0].FromLongn;
+                refGroundAtom.Y_Route = refGroundAtom.currentRoute.arr_legs[0].FromLatn;
 
+
+                if (refGroundAtom.Offset_Azimuth != 0.0 || refGroundAtom.Offset_Distance != 0.0)
+                {
+                    double initAzimDepl;
+                    double initNextRoute_X = 0;
+                    double initNextRoute_Y = 0;
+                    int initNextLeg = 0;
+
+                    refGroundAtom.VirtualMoveOnRoute(refGroundAtom.m_GameObject.m_GameManager.GroundCycleResolution, refGroundAtom.X_Route, refGroundAtom.Y_Route, out initNextRoute_X, out initNextRoute_Y, out initNextLeg);
+                    double initCurrentAzimuth = Util.Azimuth2Points(refGroundAtom.X_Route, refGroundAtom.Y_Route, initNextRoute_X, initNextRoute_Y);
+
+                    initAzimDepl = initCurrentAzimuth + refGroundAtom.Offset_Azimuth;
+                    if (initAzimDepl >= 360) initAzimDepl = initAzimDepl - 360;
+
+                    TerrainService.MathEngine.CalcProjectedLocationNew(initNextRoute_X, initNextRoute_Y, initAzimDepl, refGroundAtom.Offset_Distance, out refGroundAtom.curr_X, out refGroundAtom.curr_Y);//, true);
+                }
+                else
+                {
+                    refGroundAtom.curr_X = refGroundAtom.currentRoute.arr_legs[0].FromLongn;
+                    refGroundAtom.curr_Y = refGroundAtom.currentRoute.arr_legs[0].FromLatn;
+                }
+				// --------------------------------------------------------------------
                 return;
             }
             
@@ -135,13 +162,22 @@ namespace TDSServer.GroundTask.StateMashine
             refGroundAtom.VirtualMoveOnRoute(refGroundAtom.m_GameObject.m_GameManager.GroundCycleResolution, refGroundAtom.X_Route, refGroundAtom.Y_Route, out nextRoute_X, out nextRoute_Y,out nextLeg);
 
             double currentAzimuth = Util.Azimuth2Points(refGroundAtom.X_Route, refGroundAtom.Y_Route, nextRoute_X, nextRoute_Y);
-            refGroundAtom.currentAzimuth = currentAzimuth;
+            bool isRight = true;
+			// Yinon Douchan: Collision management
+            bool isLeft = true;
 
+            refGroundAtom.currentAzimuth = currentAzimuth;
+			// -----------------------------------
+            // refGroundAtom.Collisions.Clear();
         Lab1: ;
-        
-            if (refGroundAtom.Offset_Azimuth != 0.0 || refGroundAtom.Offset_Distance!=0.0)
+            refGroundAtom.isCollision = false;
+// Fix 02  if (refGroundAtom.Offset_Azimuth != 0.0 || refGroundAtom.Offset_Distance!=0.0)
+            if (refGroundAtom.Offset_Distance != 0.0)
             {
-                Util.calcProjectedLocation(nextRoute_X, nextRoute_Y, currentAzimuth, refGroundAtom.Offset_Azimuth, refGroundAtom.Offset_Distance, out X_Distination, out Y_Distination);
+                AzimDepl = currentAzimuth + refGroundAtom.Offset_Azimuth;
+                if (AzimDepl >= 360) AzimDepl = AzimDepl - 360;
+                
+                TerrainService.MathEngine.CalcProjectedLocationNew(nextRoute_X, nextRoute_Y, AzimDepl, refGroundAtom.Offset_Distance, out X_Distination, out Y_Distination);//, true);
             }
             else
             {
@@ -149,15 +185,47 @@ namespace TDSServer.GroundTask.StateMashine
                 Y_Distination = nextRoute_Y;
             }
 
-            movementSolver.manageCollisions(refGroundAtom, X_Distination, Y_Distination);
+            List<clsGroundAtom> colAtoms = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(X_Distination, Y_Distination, 2 * clsGroundAtom.RADIUS, isPrecise: true);
 
-            bool isRight = true;
-            bool isLeft = true;
+        //   List<clsGroundAtom> colAtoms = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(X_Distination, refGroundAtom.curr_Y, clsGroundAtom.OFFSET_IN_COLLISION, isPrecise: true);
+            foreach (clsGroundAtom atom in colAtoms)
+            {
+                if (atom != refGroundAtom)
+                {    
+                    TerrainService.Vector vDest= new TerrainService.Vector(X_Distination, Y_Distination, 0);
+                    TerrainService.Vector vMe = new TerrainService.Vector(refGroundAtom.curr_X, refGroundAtom.curr_Y, 0);
+
+                    TerrainService.Vector vCollision = new TerrainService.Vector(atom.curr_X, atom.curr_Y, 0);
+
+                    TerrainService.Vector MyDirection = vDest - vMe;
+                    MyDirection.normalize();
+                    TerrainService.Vector CollisionDirection = vCollision - vMe;
+                    CollisionDirection.normalize();
+                    double dot = MyDirection * CollisionDirection;
+                    if (dot >=0.8)// 0.6)                                                  //Against  Main Direction
+                    {
+                       // if (atom.Collisions.Contains(refGroundAtom.MyName)) continue;
+
+// Fix 03              if (atom.Collisions.Exists(v => v.name == refGroundAtom.MyName)) continue;
+                        if (atom.Collisions.Exists(v => v.name == refGroundAtom.MyName)) continue;
+//Fix 04 - New If
+                        double d = TerrainService.MathEngine.CalcDistance(X_Distination, Y_Distination, atom.curr_X, atom.curr_Y);
+                        refGroundAtom.isCollision = true;
+                        CollisionTime cTime = new CollisionTime();
+                        cTime.name = atom.MyName;
+                        cTime.time = refGroundAtom.m_GameObject.Ex_clockDate;
+                        refGroundAtom.Collisions.Add(cTime);
+
+                        break;
+                    }
+                  
+                }
+           }
 
            if(refGroundAtom.isCollision)
            {
                refGroundAtom.Offset_Azimuth = 90;
-
+			   // Yinon Douchan: Modified collision handling
                // check if I cannot go right or cannot go left
                if ((refGroundAtom.Offset_Distance + clsGroundAtom.OFFSET_IN_COLLISION) > clsGroundAtom.MAX_OFFSET) isRight = false;
                if ((refGroundAtom.Offset_Distance - clsGroundAtom.OFFSET_IN_COLLISION) < -clsGroundAtom.MAX_OFFSET) isLeft = false;
@@ -192,6 +260,7 @@ namespace TDSServer.GroundTask.StateMashine
                            refGroundAtom.Offset_Distance -= clsGroundAtom.OFFSET_IN_COLLISION;
                        }
                    }
+
                }
 
                if (refGroundAtom.Offset_Distance < -clsGroundAtom.MAX_OFFSET)
@@ -206,15 +275,28 @@ namespace TDSServer.GroundTask.StateMashine
                    refGroundAtom.Offset_Azimuth = 0;
                    return;
                }
-
+             //  refGroundAtom.Offset_Distance += clsGroundAtom.OFFSET_IN_COLLISION;// 2*clsGroundAtom.RADIUS;
                if (refGroundAtom.Offset_Distance < 0)
                {
                    refGroundAtom.Offset_Azimuth = 180 - refGroundAtom.Offset_Azimuth;
                }
+			   // --------------------------------------------------------------------------
 
+			   // Yinon Douchan: Commented out - Why are you assigning offsetted position to route position? This caused bugs in movement
                //nextRoute_X = X_Distination;
                //nextRoute_Y = Y_Distination;
+			   // ------------------------------------------------------------------------------------
+
+
+             //  AzimDepl = currentAzimuth + refGroundAtom.Offset_Azimuth;
+             //  if (AzimDepl >= 360) AzimDepl = AzimDepl - 360;
+             //  TerrainService.MathEngine.CalcProjectedLocationNew(X_Distination, Y_Distination, AzimDepl, refGroundAtom.Offset_Distance, out X_Distination, out Y_Distination);//, true);
+
+			   // Yinon Douchan: Commented out - This caused the simulator to enter an endless loop
                //goto Lab1;
+			   // ---------------------------------------------------------------------------------
+               //AzimDepl = currentAzimuth + refGroundAtom.Offset_Azimuth;
+               //if (AzimDepl >= 360) AzimDepl = AzimDepl - 360;
 
            }
            else
@@ -223,335 +305,38 @@ namespace TDSServer.GroundTask.StateMashine
                refGroundAtom.Y_Route = nextRoute_Y;
                refGroundAtom.currentLeg = nextLeg;
 
+
+
                refGroundAtom.X_Distination = X_Distination;
                refGroundAtom.Y_Distination = Y_Distination;
 
                refGroundAtom.MoveToDestination(refGroundAtom.m_GameObject.m_GameManager.GroundCycleResolution);
            }
-        }
-    }
 
-    public class REGULAR_MOVEMENT_STATE : MOVEMENT_STATE
-    {
-        clsActivityMovement refActivityMovement = null;
 
-        public REGULAR_MOVEMENT_STATE(clsActivityMovement ActivityMovement) : base(ActivityMovement)
-        {
-            refActivityMovement = ActivityMovement;
-        }
+           //List<clsGroundAtom> colAtoms = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 10, isPrecise: true);
+           //foreach (clsGroundAtom atom in colAtoms)
+           //{
+           //    if(atom!=refGroundAtom)
+           //    {
+           //        refGroundAtom.isCollision = true;
+           //        break;
+           //    }
+           //}
 
-        public override void Enter(clsGroundAtom refGroundAtom)
-        {
-            base.Enter(refGroundAtom);
-        }
 
-        public override void Execute(clsGroundAtom refGroundAtom)
-        {
-            // stop all activities if you're dead
-            if (refGroundAtom.healthStatus.isDead)
-            {
-                refGroundAtom.isCollision = false;
-                refGroundAtom.ChangeState(new DEAD_STATE());
-                return;
-            }
-            // or incapacitated
-            if (refGroundAtom.healthStatus.isIncapacitated)
-            {
-                refGroundAtom.isCollision = false;
-                refGroundAtom.ChangeState(new INCAPACITATED_STATE());
-                return;
-            }
-
-            DPoint explosionLocation = refGroundAtom.m_GameObject.getExplosionLocation();
-            double explosionRadius = refGroundAtom.m_GameObject.getExplosionRadius();
-            bool nearExplosion = TerrainService.MathEngine.CalcDistance(refGroundAtom.curr_X, refGroundAtom.curr_Y, explosionLocation.x, explosionLocation.y) <= 3 * explosionRadius;
-
-            // if emergency event has occurred restart movement with different route
-            if (!refGroundAtom.knowsAboutEmergency && refGroundAtom.m_GameObject.emergencyOccurred() && nearExplosion)
-            {
-                refGroundAtom.knowsAboutEmergency = true;
-                refActivityMovement.isEnded = true;
-                refActivityMovement.isActive = false;
-
-                clsActivityMovement panicMovement = new clsActivityMovement();
-                refGroundAtom.reRouteToEscape(panicMovement);
-
-                refGroundAtom.ChangeState(new PANIC_MOVEMENT_STATE(panicMovement, refActivityMovement));
-                return;
-            }
-            else if (refGroundAtom.m_GameObject.emergencyOccurred())
-            {
-                refGroundAtom.knowsAboutEmergency = true;
-            }
-            base.Execute(refGroundAtom);
-        }
-    }
-
-    public class PANIC_MOVEMENT_STATE : MOVEMENT_STATE
-    {
-        clsActivityMovement refActivityMovement = null;
-        clsActivityMovement refOriginalMovement = null; // original activity before entering panic
-        DateTime panicEntranceTime;
-
-        public PANIC_MOVEMENT_STATE(clsActivityMovement ActivityMovement, clsActivityMovement originalActivityMovement) : base(ActivityMovement)
-        {
-            refActivityMovement = ActivityMovement;
-            refOriginalMovement = originalActivityMovement;
-        }
-
-        public async override void Enter(clsGroundAtom refGroundAtom)
-        {
-            refGroundAtom.currentRoute = await refGroundAtom.m_GameObject.m_GameManager.refTerrain.createRouteByShortestPathOnly(refGroundAtom.X_Route,
-                refGroundAtom.Y_Route,
-                refActivityMovement.RouteActivity.Points.ElementAt(refActivityMovement.RouteActivity.Points.Count() - 1).x,
-                refActivityMovement.RouteActivity.Points.ElementAt(refActivityMovement.RouteActivity.Points.Count() - 1).y);
-            panicEntranceTime = refGroundAtom.m_GameObject.Ex_clockDate;
-        }
-
-        public override void Execute(clsGroundAtom refGroundAtom)
-        {
-            base.Execute(refGroundAtom);
-
-            TimeSpan panicDuration = refGroundAtom.m_GameObject.Ex_clockDate - panicEntranceTime;
-            DPoint explosionLocation = refGroundAtom.m_GameObject.getExplosionLocation();
-            double explosionRadius = refGroundAtom.m_GameObject.getExplosionRadius();
-            bool nearExplosion = TerrainService.MathEngine.CalcDistance(refGroundAtom.curr_X, refGroundAtom.curr_Y, explosionLocation.x, explosionLocation.y) <= 3 * explosionRadius;
-            if (!nearExplosion)
-            {
-                // get out of panic, start long-term reaction to event. Maybe just go back to your business, maybe get curious, maybe help casualties...
-                if (refOriginalMovement != null)
-                {
-                    //refGroundAtom.resetMovementData();
-                    DPoint originalDest = refOriginalMovement.RouteActivity.Points.ElementAt(refOriginalMovement.RouteActivity.Points.Count() - 1);
-                    Route reRouteToOriginal = RoutePlanner.createRoute(new DPoint(refGroundAtom.X_Route, refGroundAtom.Y_Route), originalDest);
-                    clsActivityMovement backToNormal = RoutePlanner.createActivityAndStart(refGroundAtom, refOriginalMovement.Speed, reRouteToOriginal);
-                    refOriginalMovement.ReferencePoint.x = refGroundAtom.X_Route;
-                    refOriginalMovement.ReferencePoint.y = refGroundAtom.Y_Route;
-                    refGroundAtom.ChangeState(new REGULAR_MOVEMENT_STATE(refOriginalMovement));
-                }
-            }
-        }
-    }
-
-    public class CURIOSITY_MOVEMENT_STATE : MOVEMENT_STATE
-    {
-        clsActivityMovement refActivityMovement = null;
-
-        public CURIOSITY_MOVEMENT_STATE(clsActivityMovement ActivityMovement)
-            : base(ActivityMovement)
-        {
-            refActivityMovement = ActivityMovement;
-        }
-
-        public override void Enter(clsGroundAtom refGroundAtom)
-        {
-            base.Enter(refGroundAtom);
-        }
-
-        public override void Execute(clsGroundAtom refGroundAtom)
-        {
-            base.Execute(refGroundAtom);
-        }
-    }
-
-    public class AMBULANCE_ARRIVAL_MOVEMENT_STATE : MOVEMENT_STATE
-    {
-        clsActivityMovement refActivityMovement = null;
-
-        public AMBULANCE_ARRIVAL_MOVEMENT_STATE(clsActivityMovement ActivityMovement) : base(ActivityMovement)
-        {
-            refActivityMovement = ActivityMovement;
-        }
-
-        public override async void Enter(clsGroundAtom refGroundAtom)
-        {
-            refGroundAtom.currentRoute = await refGroundAtom.m_GameObject.m_GameManager.refTerrain.createRouteByShortestPathOnly(refActivityMovement.RouteActivity.Points.ElementAt(0).x,
-                refActivityMovement.RouteActivity.Points.ElementAt(0).y,
-                refActivityMovement.RouteActivity.Points.ElementAt(1).x,
-                refActivityMovement.RouteActivity.Points.ElementAt(1).y);
-            refGroundAtom.currentSpeed = refActivityMovement.Speed;
-        }
-
-        public override void Execute(clsGroundAtom refGroundAtom)
-        {
-            if (refGroundAtom.currentLeg > refGroundAtom.currentRoute.arr_legs.Count)  //-1)  // refActivityMovement.RouteActivity.Points.Count()-1)
-            {
-                // arrived to ground zero. Now search for casualties
-                refActivityMovement.isEnded = true;
-                refActivityMovement.isActive = false;
-                refGroundAtom.currentRoute = null;
-
-                DPoint groundZeroLocation = refGroundAtom.m_GameObject.getExplosionLocation();
-                double groundZeroRadius = refGroundAtom.m_GameObject.getExplosionRadius();
-                List<clsGroundAtom> atomsInGroundZero = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(groundZeroLocation.x, groundZeroLocation.y, groundZeroRadius, isPrecise: true);
-                foreach (clsGroundAtom atom in atomsInGroundZero) {
-                    if (atom.healthStatus.isDead || atom.healthStatus.isIncapacitated) {
-                        refGroundAtom.resetMovementData();
-                        Route straightLine = RoutePlanner.createRoute(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y), new DPoint(atom.curr_X, atom.curr_Y));
-                        clsActivityMovement extractionMovement = RoutePlanner.createActivityAndStart(refGroundAtom, 5, straightLine);
-
-                        refGroundAtom.ChangeState(new AMBULANCE_GO_TO_CASUALTY_STATE(extractionMovement, atom));
-
-                        return;
-                    }
-                }
-
-                return;
-            }
-
- 	         base.Execute(refGroundAtom);
-        }
-    }
-
-    public class AMBULANCE_GO_TO_CASUALTY_STATE : MOVEMENT_STATE
-    {
-        clsActivityMovement refActivityMovement = null;
-        clsGroundAtom refCasualty = null;
-
-        public AMBULANCE_GO_TO_CASUALTY_STATE(clsActivityMovement ActivityMovement, clsGroundAtom Casualty) : base(ActivityMovement)
-        {
-            refActivityMovement = ActivityMovement;
-            refCasualty = Casualty;
-        }
-
-        public override void Enter(clsGroundAtom refGroundAtom)
-        {
-            refGroundAtom.currentRoute = RoutePlanner.planStraightLineRoute(refActivityMovement.RouteActivity.Points.ElementAt(0),
-                                                                refActivityMovement.RouteActivity.Points.ElementAt(1),
-                                                                refActivityMovement.RouteActivity.RouteName);
-            refGroundAtom.currentSpeed = refActivityMovement.Speed;
-        }
-
-        public override void Execute(clsGroundAtom refGroundAtom)
-        {
-            // once reached casualty start evacuating
-            if (refGroundAtom.currentLeg > refGroundAtom.currentRoute.arr_legs.Count)  //-1)  // refActivityMovement.RouteActivity.Points.Count()-1)
-            {
-                refGroundAtom.resetMovementData();
-                List<DPoint> points = new List<DPoint>();
-
-                // go from casualty location to route and then to extraction location
-                points.Add(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y));
-                points.Add(new DPoint(refGroundAtom.m_GameObject.getExplosionLocation().x, refGroundAtom.m_GameObject.getExplosionLocation().y));
-                points.Add(new DPoint(34.8514473088014, 32.1008536878526));
-                Route route = RoutePlanner.createRoute(points);
-                clsActivityMovement evacuationMovement = RoutePlanner.createActivityAndStart(refGroundAtom, 80, route);
-                refGroundAtom.ChangeState(new AMBULANCE_EVACUATION_MOVEMENT_STATE(evacuationMovement, refCasualty));
-
-                return;
-            }
-
-            base.Execute(refGroundAtom);
-        }
-    }
-
-    public class AMBULANCE_EVACUATION_MOVEMENT_STATE : MOVEMENT_STATE
-    {
-        clsActivityMovement refActivityMovement = null;
-        clsGroundAtom refCasualty = null;
-
-        public AMBULANCE_EVACUATION_MOVEMENT_STATE(clsActivityMovement ActivityMovement, clsGroundAtom Casualty) : base(ActivityMovement)
-        {
-            refActivityMovement = ActivityMovement;
-            refCasualty = Casualty;
-        }
-
-        public async override void Enter(clsGroundAtom refGroundAtom)
-        {
-            refGroundAtom.currentRoute = await refGroundAtom.m_GameObject.m_GameManager.refTerrain.createRouteByShortestPathOnly(refActivityMovement.RouteActivity.Points.ElementAt(1).x,
-            refActivityMovement.RouteActivity.Points.ElementAt(1).y,
-            refActivityMovement.RouteActivity.Points.ElementAt(2).x,
-            refActivityMovement.RouteActivity.Points.ElementAt(2).y);
-
-            typLegSector casuatlyToGroundZero = new typLegSector();
-            casuatlyToGroundZero.FromLongn = refActivityMovement.RouteActivity.Points.ElementAt(0).x;
-            casuatlyToGroundZero.FromLatn = refActivityMovement.RouteActivity.Points.ElementAt(0).y;
-            casuatlyToGroundZero.ToLongn = refActivityMovement.RouteActivity.Points.ElementAt(1).x;
-            casuatlyToGroundZero.ToLatn = refActivityMovement.RouteActivity.Points.ElementAt(1).y;
-            casuatlyToGroundZero.LegDistance = (float)TerrainService.MathEngine.CalcDistance(refActivityMovement.RouteActivity.Points.ElementAt(0).x,
-                                                                                      refActivityMovement.RouteActivity.Points.ElementAt(0).y,
-                                                                                      refActivityMovement.RouteActivity.Points.ElementAt(1).x,
-                                                                                      refActivityMovement.RouteActivity.Points.ElementAt(1).y) / 1000f;
-            refGroundAtom.currentRoute.arr_legs.Insert(0, casuatlyToGroundZero);
-
-            //refGroundAtom.currentRoute = RoutePlanner.planStraightLineRoute(refActivityMovement.RouteActivity.Points.ElementAt(0),
-            //                                        refActivityMovement.RouteActivity.Points.ElementAt(2),
-            //                                        refActivityMovement.RouteActivity.RouteName);
-            refGroundAtom.currentSpeed = refActivityMovement.Speed;
-        }
-
-        public override void Execute(clsGroundAtom refGroundAtom)
-        {
-            // continue evacuating only if there are people to evacuate
-            DPoint groundZeroLocation = refGroundAtom.m_GameObject.getExplosionLocation();
-            double groundZeroRadius = refGroundAtom.m_GameObject.getExplosionRadius();
-
-            if (refGroundAtom.currentLeg > refGroundAtom.currentRoute.arr_legs.Count)  //-1)  // refActivityMovement.RouteActivity.Points.Count()-1)
-            {
-                List<clsGroundAtom> atomsInGroundZero = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(groundZeroLocation.x, groundZeroLocation.y, groundZeroRadius, isPrecise: true);
-                bool thereAreMoreCasualties = false;
-
-                foreach (clsGroundAtom atom in atomsInGroundZero)
-                {
-                    if (atom.healthStatus.isDead || atom.healthStatus.isIncapacitated)
-                    {
-                        thereAreMoreCasualties = true;
-                        break;
-                    }
-                }
-
-                if (!thereAreMoreCasualties)
-                {
-                    // if there are no more casualties in ground zero no need to go there.
-                    refGroundAtom.ChangeState(new AMBULANCE_ADMINISTRATIVE_STATE());
-                    return;
-                }
-
-                refActivityMovement.isEnded = true;
-                refActivityMovement.isActive = false;
-                refGroundAtom.currentRoute = null;
-
-                refGroundAtom.knowsAboutEmergency = true;
-
-                refGroundAtom.resetMovementData();
-                Route straightLine = RoutePlanner.createRoute(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y),
-                                                                        refGroundAtom.m_GameObject.getExplosionLocation());
-                clsActivityMovement arrivalMovement = RoutePlanner.createActivityAndStart(refGroundAtom, 80, straightLine);
-
-                refGroundAtom.ChangeState(new AMBULANCE_ARRIVAL_MOVEMENT_STATE(arrivalMovement));
-
-                return;
-            }
-
-            base.Execute(refGroundAtom);
-
-            // take the evacuee with me
-            refCasualty.curr_X = refGroundAtom.curr_X;
-            refCasualty.curr_Y = refGroundAtom.curr_Y;
-        }
-    }
-
-    public class DEAD_STATE : BasicStateFormGroundTaskOrder
-    {
-        public override void Enter(clsGroundAtom refGroundAtom)
-        {
-            base.Enter(refGroundAtom);
-        }
-        public override void Execute(clsGroundAtom refGroundAtom)
-        {
-            // For now, do nothing. You're dead.
-        }
-    }
-
-    public class INCAPACITATED_STATE : BasicStateFormGroundTaskOrder
-    {
-        public override void Enter(clsGroundAtom refGroundAtom)
-        {
-            base.Enter(refGroundAtom);
-        }
-        public override void Execute(clsGroundAtom refGroundAtom)
-        {
-            // For now, do nothing. You're incapacitated but hey, you're still alive! Maybe call for help?
+           //if (refGroundAtom.currentLeg >  refGroundAtom.currentRoute.arr_legs.Count)  //-1)  // refActivityMovement.RouteActivity.Points.Count()-1)
+           // {
+           //     refActivityMovement.isEnded = true;
+           //     refActivityMovement.isActive = false;
+           //     refGroundAtom.currentRoute = null;
+           //     refGroundAtom.ChangeState(new ADMINISTRATIVE_STATE());
+           //     return;
+           // }
+           //else
+           //{
+           //    refGroundAtom.Move(refGroundAtom.m_GameObject.m_GameManager.GroundCycleResolution);
+           //}
         }
     }
 

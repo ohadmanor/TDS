@@ -29,15 +29,16 @@ namespace TDSServer.GroundTask
         public double Offset_Azimuth = 0;
         public double Offset_Distance = 0;
 
-        public Boolean knowsAboutEmergency;
-
         private int m_currentLeg;
+		// Yinon Douchan: Health status and knowledge of emergency
+		public Boolean knowsAboutEmergency;
         private HealthStatus m_healthStatus;
         public HealthStatus healthStatus
         {
             get { return m_healthStatus; }
             set { m_healthStatus = value; }
         }
+		// --------------------------------------------------------
         public int currentLeg
         {
             get { return m_currentLeg; }
@@ -81,10 +82,11 @@ namespace TDSServer.GroundTask
 
         public clsGroundAtom(GameObject pGameObject)
         {
+			// Yinon Douchan: Health status and knowledge of emergency
             knowsAboutEmergency = false;
             m_GameObject = pGameObject;
             m_healthStatus = new HealthStatus();
-
+			// -------------------------------------------------------
             ChangeState(new ADMINISTRATIVE_STATE());
         }
 
@@ -133,7 +135,9 @@ namespace TDSServer.GroundTask
                 switch(ActivityFound.ActivityType)
                 {
                     case enumActivity.MovementActivity:
+						// Yinon Douchan: changed to new state
                         refGroundAtom.ChangeState(new REGULAR_MOVEMENT_STATE(ActivityFound as clsActivityMovement));
+						// -----------------------------------------
                         break;
                 }
             }
@@ -163,7 +167,6 @@ namespace TDSServer.GroundTask
                     {
                         deltaX = ((currentRoute.arr_legs[i].ToLongn - currentRoute.arr_legs[i].FromLongn) * dist) / curDist;
                         deltaY = ((currentRoute.arr_legs[i].ToLatn - currentRoute.arr_legs[i].FromLatn) * dist) / curDist;
-
                         curr_X = curr_X + deltaX;
                         curr_Y = curr_Y + deltaY;
                     }
@@ -274,6 +277,7 @@ namespace TDSServer.GroundTask
 
         }
 
+		// Yinon Douchan: Code for re routing to escape point for explosions
         public void reRouteToEscape(clsActivityMovement panicMovement)
         {
             // form the activity
@@ -370,7 +374,7 @@ namespace TDSServer.GroundTask
             Offset_Azimuth = 0;
             Offset_Distance = 0;
         }
-
+		// --------------------------------------------------------------------------------
 
         public new string Key
         {
@@ -398,6 +402,7 @@ namespace TDSServer.GroundTask
         }
     }
 
+	// Yinon Douchan: An atom's sealth status
     public class HealthStatus
     {
         public double injurySeverity;
@@ -418,4 +423,5 @@ namespace TDSServer.GroundTask
             return !isDead && !isIncapacitated && !isInjured;
         }
     }
+	// ------------------------------------------------------------------
 }

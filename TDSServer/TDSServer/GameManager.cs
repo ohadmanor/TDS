@@ -244,9 +244,10 @@ namespace TDSServer
 
 
 
-
+							// Yinon Douchan: Added code for statistics, not sure it should stay
                             // write collision report before resetting game
                             m_GameObject.writeCollisionReportAndClearData();
+							// -----------------------------------------------------------------
 
                             InitObjects();
 
@@ -261,8 +262,6 @@ namespace TDSServer
                             args.Transport2Client.AtomObjectType = 2;
                             args.Transport2Client.AtomObjectCollection = m_GameObject.PrepareGroundCommonProperty();
                             args.Transport2Client.ManagerStatus = ManagerStatus;
-
-
                             NotifyClientsEndCycle(args);
                          
                         }

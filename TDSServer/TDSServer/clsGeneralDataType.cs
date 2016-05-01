@@ -95,9 +95,11 @@ namespace TDSServer
         public ushort FontKey;       
         public ushort CountryId;
         public bool isCollision;
+		// Yinon Douchan: Health status data of an atom
         public bool isDead;
         public bool isIncapacitated;
         public bool isInjured;
+		// --------------------------------------------------------
     }
     public struct structTransport2Client
     {      
@@ -227,7 +229,7 @@ namespace TDSServer
             }
         } 
     }
-
+	// Yinon Douchan: Collision statistics data type
     public class CollisionData
     {
         public DateTime date;
@@ -243,6 +245,7 @@ namespace TDSServer
             this.frontal = frontal;
         }
     }
+	// ------------------------------------------------------------------------
 
     public class DPoint
     {

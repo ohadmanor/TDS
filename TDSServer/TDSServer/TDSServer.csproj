@@ -110,6 +110,8 @@
     <Compile Include="GameObject.cs" />
     <Compile Include="GroundTask\clsGroundAtom.cs" />
     <Compile Include="GroundTask\SocialComparison.cs" />
+    <Compile Include="GroundTask\StateMashine\AmbulanceSM.cs" />
+    <Compile Include="GroundTask\StateMashine\PedestrianSM.cs" />
     <Compile Include="GroundTask\StateMashine\RoutePlanner.cs" />
     <Compile Include="GroundTask\StateMashine\MovementSolver.cs" />
     <Compile Include="GroundTask\StateMashine\FormGroundTaskSM.cs" />
