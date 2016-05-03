@@ -244,7 +244,10 @@ namespace TDSServer
 
 
 
-
+							// Yinon Douchan: Added code for statistics, not sure it should stay
+                            // write collision report before resetting game
+                            m_GameObject.writeCollisionReportAndClearData();
+							// -----------------------------------------------------------------
 
                             InitObjects();
 

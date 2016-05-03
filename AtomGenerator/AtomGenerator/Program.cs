@@ -79,19 +79,18 @@ namespace AtomGenerator
 
     class RoutesReader
     {
-        private String connectionParams;
         private NpgsqlConnection connection;
 
-        public RoutesReader(String connectionParams)
+        public RoutesReader(NpgsqlConnection connection)
         {
-            this.connectionParams = connectionParams;
+            this.connection = connection;
         }
 
         public List<Route> readAllRoutes()
         {
             List<Route> routes = new List<Route>();
 
-            NpgsqlCommand command = query("SELECT * FROM routes");
+            NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM routes", connection);
             NpgsqlDataReader reader = command.ExecuteReader();
 
             // read the routes themselves
@@ -108,21 +107,22 @@ namespace AtomGenerator
                 routes.Add(route);
             }
 
-            connection.Close();
+            reader.Close();
 
             // now for all route add his points
             foreach (Route route in routes)
             {
-                NpgsqlCommand selectRoutePoints = query("SELECT * FROM routes_points WHERE route_guid='" + route.guid + "'");
+                command.CommandText = "SELECT * FROM routes_points WHERE route_guid=:guid";
+                command.Parameters.Add(new NpgsqlParameter("guid", route.guid));
 
-                reader = selectRoutePoints.ExecuteReader();
+                reader = command.ExecuteReader();
                 while (reader.Read())
                 {
                     DPoint point = new DPoint((double)reader[2], (double)reader[3]);
                     route.routePoints.Add(point);
                 }
 
-                connection.Close();
+                reader.Close();
             }
 
             return routes;
@@ -130,7 +130,7 @@ namespace AtomGenerator
 
         public Route readRouteByName(String name)
         {
-            NpgsqlCommand command = query("SELECT * FROM routes WHERE route_name=:name");
+            NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM routes WHERE route_name=:name", connection);
             command.Parameters.Add(new NpgsqlParameter("name", name));
 
             NpgsqlDataReader reader = command.ExecuteReader();
@@ -146,41 +146,33 @@ namespace AtomGenerator
             route.routeTypeId = (reader[3] == DBNull.Value) ? -1 : (int)reader[3];
             route.owner = (reader[4] == DBNull.Value) ? null : (String)reader[4];
 
-            connection.Close();
+            reader.Close();
 
             // get route points
-            NpgsqlCommand selectRoutePoints = query("SELECT * FROM routes_points WHERE route_guid=:guid");
-            selectRoutePoints.Parameters.Add(new NpgsqlParameter("guid", route.guid));
+            command.CommandText = "SELECT * FROM routes_points WHERE route_guid=:guid";
+            command.Parameters.Add(new NpgsqlParameter("guid", route.guid));
 
-            reader = selectRoutePoints.ExecuteReader();
+            reader = command.ExecuteReader();
+
             while (reader.Read())
             {
                 DPoint point = new DPoint((double)reader[2], (double)reader[3]);
                 route.routePoints.Add(point);
             }
 
-            connection.Close();
+            reader.Close();
 
             return route;
-        }
-
-        private NpgsqlCommand query(String queryString)
-        {
-            connection = new NpgsqlConnection(connectionParams);
-            connection.Open();
-            NpgsqlCommand command = new NpgsqlCommand(queryString, connection);
-
-            return command;
         }
     }
 
     class RouteGenerator
     {
-        private String connectionParams;
+        private NpgsqlConnection connection;
 
-        public RouteGenerator(String connectionParams)
+        public RouteGenerator(NpgsqlConnection connection)
         {
-            this.connectionParams = connectionParams;
+            this.connection = connection;
         }
 
         public void generateReversedRoute(String routeName)
@@ -190,7 +182,7 @@ namespace AtomGenerator
 
         public void generateReversedRoute(String routeName, String reversedRouteName)
         {
-            RoutesReader routesReader = new RoutesReader(connectionParams);
+            RoutesReader routesReader = new RoutesReader(connection);
             Route route = routesReader.readRouteByName(routeName);
             Route reversedRoute = new Route();
             reversedRoute.guid = Util.CreateGuid();
@@ -215,8 +207,6 @@ namespace AtomGenerator
         public void saveRouteToDB(Route route)
         {
             // add the route itself
-            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
-            connection.Open();
             NpgsqlCommand addRouteCommand = new NpgsqlCommand("INSERT INTO routes(route_guid, route_name, countryid, routetypeid, owner) VALUES (:guid, :name, :countryId, :typeid, :owner)", connection);
             addRouteCommand.Parameters.Add(new NpgsqlParameter("guid", route.guid));
             addRouteCommand.Parameters.Add(new NpgsqlParameter("name", route.name));
@@ -224,13 +214,10 @@ namespace AtomGenerator
             addRouteCommand.Parameters.Add(new NpgsqlParameter("typeid", route.routeTypeId));
             addRouteCommand.Parameters.Add(new NpgsqlParameter("owner", route.owner != null ? route.owner : ""));
             addRouteCommand.ExecuteNonQuery();
-            connection.Close();
 
             // add its points
             for (int i = 0; i < route.routePoints.Count; i++)
             {
-                connection = new NpgsqlConnection(connectionParams);
-                connection.Open();
                 String query = "INSERT INTO routes_points(route_guid, point_num, pointx, pointy)"
                              + " VALUES (:guid, :point_num, :x, :y)";
                 NpgsqlCommand addRoutePointsCommand = new NpgsqlCommand(query, connection);
@@ -239,44 +226,40 @@ namespace AtomGenerator
                 addRoutePointsCommand.Parameters.Add(new NpgsqlParameter("x", route.routePoints[i].x));
                 addRoutePointsCommand.Parameters.Add(new NpgsqlParameter("y", route.routePoints[i].y));
                 addRoutePointsCommand.ExecuteNonQuery();
-                connection.Close();
             }
         }
     }
 
     class AtomGenerator
     {
-        private String connectionParams;
+        private NpgsqlConnection connection;
 
-        public AtomGenerator(String connectionParams)
+        public AtomGenerator(NpgsqlConnection connection)
         {
-            this.connectionParams = connectionParams;
+            this.connection = connection;
         }
 
         public void deleteAllAtomsAndActivities()
         {
             // delete all atoms
-            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
-            connection.Open();
             String query = "TRUNCATE table atomobjects";
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
             command.ExecuteNonQuery();
-            connection.Close();
 
             // delete all activities
-            connection = new NpgsqlConnection(connectionParams);
-            connection.Open();
             query = "TRUNCATE table activites";
-            command = new NpgsqlCommand(query, connection);
+            command.CommandText = query;
             command.ExecuteNonQuery();
-            connection.Close();
+
+            // delete all tree objects
+            query = "TRUNCATE table treeobject";
+            command.CommandText = query;
+            command.ExecuteNonQuery();
         }
 
         public void createAtom(AtomObject atom)
         {
             // save the object to the database
-            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
-            connection.Open();
             String query = "INSERT INTO atomobjects(atom_guid, atom_name, countryid, pointx, pointy) VALUES (:guid, :name, :countryId, :x, :y)";
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
             command.Parameters.Add(new NpgsqlParameter("guid", atom.guid));
@@ -285,13 +268,12 @@ namespace AtomGenerator
             command.Parameters.Add(new NpgsqlParameter("x", atom.pointX));
             command.Parameters.Add(new NpgsqlParameter("y", atom.pointY));
             command.ExecuteNonQuery();
-            connection.Close();
         }
 
         public void createActivityToAtom(Activity activity, AtomObject atom)
         {
-            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
-            connection.Open();
+            // TODO - read from sequence
+
             String query = "INSERT INTO activites(activityid, atom_guid, activity_seqnumber, activitytype,"
                 + " startactivityoffset, durationactivity, speed, route_guid, referencepointx, referencepointy)"
                 + " VALUES (:id, :atomGuid, :activitySeq, :activityType, :startOffset, :duration, :speed, :routeGuid, :refX, :refY)";
@@ -307,13 +289,12 @@ namespace AtomGenerator
             command.Parameters.Add(new NpgsqlParameter("refX", activity.refX));
             command.Parameters.Add(new NpgsqlParameter("refY", activity.refY));
             command.ExecuteNonQuery();
-            connection.Close();
+
+            // TODO - increment seuquence
         }
 
         public void addAtomToTreeObject(AtomObject atom)
         {
-            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
-            connection.Open();
             String query = "INSERT INTO treeobject(identification, guid, parentguid, countryid, platformcategoryid, platformtype, formationtypeid)"
                          + " VALUES (:identification, :guid, :parentguid, :countryid, :platformcategoryid, :platformtype, :formationtypeid)";
             NpgsqlCommand command = new NpgsqlCommand(query, connection);
@@ -325,7 +306,6 @@ namespace AtomGenerator
             command.Parameters.Add(new NpgsqlParameter("platformtype", ""));
             command.Parameters.Add(new NpgsqlParameter("formationtypeid", 1));
             command.ExecuteNonQuery();
-            connection.Close();
         }
     }
 
@@ -344,11 +324,11 @@ namespace AtomGenerator
 
     class Program
     {
-        static void addAtomsToRoute(Route route, AtomGenerator generator)
+        static void addAtomsToRoute(Route route, AtomGenerator generator, int count)
         {
-            for (int i = 0; i < 50; i++)
+            for (int i = 0; i < count; i++)
             {
-                double scatterLength = 0.0002;
+                double scatterLength = 0.0000;
                 double offset = Util.rand.NextDouble();
 
                 double firstLegDeltaX = route.routePoints[1].x - route.routePoints[0].x;
@@ -365,28 +345,60 @@ namespace AtomGenerator
                 int minutes = Util.rand.Next(2);
                 int seconds = Util.rand.Next(1, 60);
                 int speed = Util.rand.Next(3, 11);
+
                 String secondsString = seconds >= 10 ? seconds.ToString() : "0" + seconds;
                 Activity activity = new Activity(100 + i, atom.guid, 1, 1, "00:0" + minutes + ":" + secondsString,
-                                                 "00:00:00", speed, route.guid, route.routePoints[0].x, route.routePoints[0].y);
+                                                 "00:00:01", speed, route.guid, route.routePoints[0].x, route.routePoints[0].y);
                 generator.createAtom(atom);
                 generator.createActivityToAtom(activity, atom);
-                //generator.addAtomToTreeObject(atom);
+                generator.addAtomToTreeObject(atom);
             }
         }
         static void Main(string[] args)
         {
             String connectionParams = "Server=localhost;Port=5432;User Id=postgres;Password=yy11yy11;Database=TDS;";
-            RoutesReader routesReader = new RoutesReader(connectionParams);
-            AtomGenerator generator = new AtomGenerator(connectionParams);
-            RouteGenerator routeGenerator = new RouteGenerator(connectionParams);
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlTransaction transaction = connection.BeginTransaction();
 
-            generator.deleteAllAtomsAndActivities();
+            try
+            {
 
-            Route rightRoute = routesReader.readRouteByName("RightToLeft");
-            Route leftRoute = routesReader.readRouteByName("LeftToRight");
+                RoutesReader routesReader = new RoutesReader(connection);
+                AtomGenerator generator = new AtomGenerator(connection);
+                RouteGenerator routeGenerator = new RouteGenerator(connection);
 
-            addAtomsToRoute(rightRoute, generator);
-            addAtomsToRoute(leftRoute, generator);
+                generator.deleteAllAtomsAndActivities();
+                Route source1 = routesReader.readRouteByName("Escape3");
+                Route source2 = routesReader.readRouteByName("Escape3_reversed");
+                //Route source3 = routesReader.readRouteByName("Source3");
+                //Route cornerRoute = routesReader.readRouteByName("Corner");
+
+                addAtomsToRoute(source1, generator, 100);
+                addAtomsToRoute(source2, generator, 100);
+                //addAtomsToRoute(source3, generator, 100);
+                //addAtomsToRoute(cornerRoute, generator);
+                AtomObject ambulance = new AtomObject("Ambulance1", -1, 34.8514473088014, 32.1008536878526);
+                generator.createAtom(ambulance);
+                generator.addAtomToTreeObject(ambulance);
+
+                //routeGenerator.generateReversedRoute("Escape3");
+
+                transaction.Commit();
+            }
+            catch (Exception exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception rollbackException)
+                {
+                    Console.WriteLine("Rollback failed :(");
+                }
+            }
+
+            connection.Close();
         }
     }
 }

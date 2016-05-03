@@ -12,6 +12,9 @@ namespace TDSServer
     public class Util
     {
         internal const string ENCRYPT_DECRYPT_KEY = "19541954";
+		// Yinon Douchan: A random number
+        public static readonly Random random = new Random();
+		// --------------------------------------------------------
         private static byte[] Encrypt1(byte[] clearData, byte[] Key, byte[] IV)
         {
             // Create a MemoryStream to accept the encrypted bytes 
@@ -171,5 +174,15 @@ namespace TDSServer
             }
             return (float)azim;
         }
+		
+		// Yinon Douchan: Azimuth difference in degrees between two azimuths
+        public static double getAzimuthDifferenceDegrees(double azimuth1, double azimuth2)
+        {
+            double azim1 = Math.Abs(azimuth1 - azimuth2);
+            double azim2 = Math.Abs(azimuth2 - azimuth1);
+
+            return Math.Min(azim1, azim2);
+        }
+		// --------------------------------------------------------------------
     }
 }

@@ -182,6 +182,11 @@ namespace TDSClient.SAGInterface
         public ushort FontKey;
         public ushort CountryId;
         public bool isCollision;
+		// Yinon Douchan: Added code for modeling casualties
+        public bool isDead;
+        public bool isIncapacitated;
+        public bool isInjured;
+		// -------------------------------------------------
 
     }
     public struct structTransport2Client

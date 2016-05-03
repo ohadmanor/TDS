@@ -103,7 +103,48 @@ namespace TDSServer
 
             return null;
         }
+		
+		// Yinon Douchan: Only find the shortest path between two points.
+        public async Task<typRoute> createRouteByShortestPathOnly(double StartX, double StartY, double ReferencePointX, double ReferencePointY)
+        {
+            List<DPoint> Result = new List<DPoint>();
 
+            DPoint ReferPoint = new DPoint(ReferencePointX, ReferencePointY);
+            shPath Path = await clsRoadRoutingWebApi.FindShortPath("0", StartX, StartY, ReferencePointX, ReferencePointY, false);
+
+            if (Path != null && Path.Points.Count > 0)
+            {
+                shPoint refPoint = Path.Points[Path.Points.Count - 1];
+                ReferPoint = new DPoint(refPoint.x, refPoint.y);
+
+                foreach (shPoint p in Path.Points)
+                {
+                    Result.Add(new DPoint(p.x, p.y));
+                }
+
+            }
+
+            if (Result.Count == 0)
+            {
+                Result.Add(new DPoint(StartX, StartY));
+            }
+            else
+            {
+                if (Result[0].x != StartX || Result[0].y != StartY)
+                {
+                    Result.Insert(0, new DPoint(StartX, StartY));
+                }
+            }
+
+            Route routeResult = new Route();
+            routeResult.Points = Result;
+
+
+            typRoute tRoute = new typRoute(routeResult);
+
+            return tRoute;
+        }
+		// --------------------------------------------------------------------------------------
     }
 }
 

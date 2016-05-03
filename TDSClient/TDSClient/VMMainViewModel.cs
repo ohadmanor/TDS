@@ -789,6 +789,20 @@ namespace TDSClient
                 MyMainMap.ConvertCoordGroundToPixel(refGroundAtom.X, refGroundAtom.Y, ref PixelX, ref PixelY);
 
                 ch = (char)150; //  1000;         //(char)refGroundAtom.FontKey;
+				// Yinon Douchan: Added code for showing dead/injured
+				int fontSize = 42;
+                if (refGroundAtom.isDead)
+                {
+                    //curBrush.Color = System.Windows.Media.Colors.Black;
+                    ch = (char)207;
+                    fontSize = 16;
+                }
+                else if (refGroundAtom.isIncapacitated || refGroundAtom.isInjured)
+                {
+                    ch = (char)204;
+                    fontSize = 16;
+                }
+				// ---------------------------------------------------
                 //42
 
                 //System.Windows.Media.FormattedText frm2 = new System.Windows.Media.FormattedText(new string(ch, 1),
@@ -798,12 +812,13 @@ namespace TDSClient
                 //                                    24, curBrush);
 
 
-
+				// Yinon Douchan: Added code for showing dead/injured
                 System.Windows.Media.FormattedText frm2 = new System.Windows.Media.FormattedText(new string(ch, 1),
                                                   System.Globalization.CultureInfo.GetCultureInfo("en-us"),
                                                   System.Windows.FlowDirection.LeftToRight,
                                                   new System.Windows.Media.Typeface("Wingdings 2"),
-                                                  42, curBrush);
+                                                  fontSize, curBrush);
+				// ---------------------------------------------------
 
                 frm2.TextAlignment = System.Windows.TextAlignment.Center;
 

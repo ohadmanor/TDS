@@ -86,3 +86,10 @@ C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.Window
 C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.g.resources
 C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.dll
 C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.pdb
+C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.csprojResolveAssemblyReference.cache
+C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.baml
+C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.g.cs
+C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation_MarkupCompile.cache
+C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.g.resources
+C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.dll
+C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.pdb
