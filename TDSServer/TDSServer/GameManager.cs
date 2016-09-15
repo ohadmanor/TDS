@@ -25,6 +25,11 @@ namespace TDSServer
 
         public QuadTree<clsGroundAtom> QuadTreeGroundAtom = null;
 
+		// YD: Quad tree of Dubek's structure
+        public QuadTree<clsGroundAtom> QuadTreeStructure1GroundAtom = null;
+		// YD: Quad tree of Malam's structure
+        public QuadTree<clsGroundAtom> QuadTreeStructure2GroundAtom = null;
+
 
         private Thread StatusControllerThread;
         private Thread Ex_ManagerThread;
@@ -42,6 +47,8 @@ namespace TDSServer
         private void initManager()
         {
             m_GameObject = new GameObject(this);
+			// YD: preload route data from database
+            m_GameObject.preloadData();
             if (m_ManagerStatus == typGamestatus.UNDEFINED_STATUS)
             {
                 InitObjects();

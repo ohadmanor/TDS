@@ -1,95 +1,15 @@
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.xml
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.csprojResolveAssemblyReference.cache
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.baml
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.g.cs
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation_MarkupCompile.cache
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.g.resources
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.xml
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.baml
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.g.cs
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation_MarkupCompile.cache
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.g.resources
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.csprojResolveAssemblyReference.cache
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.xml
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.csprojResolveAssemblyReference.cache
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.baml
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.g.cs
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation_MarkupCompile.cache
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.g.resources
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.csprojResolveAssemblyReference.cache
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.baml
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.g.cs
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation_MarkupCompile.cache
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.g.resources
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.dll
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.dll
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.csprojResolveAssemblyReference.cache
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.baml
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.g.cs
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation_MarkupCompile.cache
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.g.resources
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\SAGClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.pdb
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.dll
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.dll
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.xml
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.csprojResolveAssemblyReference.cache
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.baml
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.g.cs
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation_MarkupCompile.cache
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.g.resources
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.dll
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.pdb
-C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.csprojResolveAssemblyReference.cache
-C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.baml
-C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.g.cs
-C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation_MarkupCompile.cache
-C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.g.resources
-C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.dll
-C:\dev\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.pdb
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\x64\SQLite.Interop.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\x86\SQLite.Interop.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.WindowsPresentation.pdb
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\GMap.NET.Core.pdb
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\bin\Debug\System.Data.SQLite.xml
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.csprojResolveAssemblyReference.cache
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.baml
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation\TilePrefetcher.g.cs
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation_MarkupCompile.cache
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.g.resources
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\obj\Debug\GMap.NET.WindowsPresentation.pdb

@@ -32,6 +32,26 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.AspNet.SignalR.Core, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.SignalR.Core.2.2.0\lib\net45\Microsoft.AspNet.SignalR.Core.dll</HintPath>
@@ -96,8 +116,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class2.cs" />
     <Compile Include="clsGeneralDataType.cs" />
+    <Compile Include="clsPolygon.cs" />
     <Compile Include="clsRoadRoutingWebApi.cs" />
     <Compile Include="clsTerrain.cs" />
     <Compile Include="Form1.cs">
@@ -111,9 +131,9 @@
     <Compile Include="GroundTask\clsGroundAtom.cs" />
     <Compile Include="GroundTask\SocialComparison.cs" />
     <Compile Include="GroundTask\StateMashine\AmbulanceSM.cs" />
+    <Compile Include="GroundTask\StateMashine\MoveInStructureSM.cs" />
     <Compile Include="GroundTask\StateMashine\PedestrianSM.cs" />
-    <Compile Include="GroundTask\StateMashine\RoutePlanner.cs" />
-    <Compile Include="GroundTask\StateMashine\MovementSolver.cs" />
+    <Compile Include="GroundTask\StateMashine\RouteUtils.cs" />
     <Compile Include="GroundTask\StateMashine\FormGroundTaskSM.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -123,6 +143,8 @@
     <Compile Include="Startup.cs" />
     <Compile Include="TDS.DAL\ActivityDB.cs" />
     <Compile Include="TDS.DAL\AtomsDB.cs" />
+    <Compile Include="TDS.DAL\BarriersDB.cs" />
+    <Compile Include="TDS.DAL\PolygonsDB.cs" />
     <Compile Include="TDS.DAL\RoutesDB.cs" />
     <Compile Include="TDS.DAL\UsersDB.cs" />
     <Compile Include="Util.cs" />
@@ -139,7 +161,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="ClassDiagram1.cd" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

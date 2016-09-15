@@ -147,6 +147,7 @@ namespace TDSServer
                        response = await client.GetAsync(strUri);
                        if (response.StatusCode != System.Net.HttpStatusCode.OK)
                        {
+                           Console.WriteLine("NOT OK: " + response.StatusCode.ToString());
                            return null;
                        }
 
@@ -387,7 +388,6 @@ namespace TDSServer
              }
 
         }
-
 
     }
 }

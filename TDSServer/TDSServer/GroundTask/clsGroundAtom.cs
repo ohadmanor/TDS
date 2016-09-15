@@ -7,6 +7,16 @@ using TDSServer.GroundTask.StateMashine;
 
 namespace TDSServer.GroundTask
 {
+	// YD: event handler delegates
+    // start and end of earthquake
+    public delegate void EarthquakeStarterEventHandler(object sender, EventArgs e);
+    public delegate void EarthquakeEndedEventHandler(object sender, EventArgs e);
+    // arrival of forces delegate
+    public delegate void ForcesHaveArrivedEventHandler(object sender, EventArgs e);
+    // dying or becoming incapacitated
+    public delegate void IncapacitationEventHandler(object sender, EventArgs e);
+    public delegate void DeathEventHandler(object sender, EventArgs e);
+	// ---
     public class clsGroundAtom : AtomBase, IQuadTree
     {
         [NonSerialized]
@@ -31,7 +41,7 @@ namespace TDSServer.GroundTask
 
         private int m_currentLeg;
 		// Yinon Douchan: Health status and knowledge of emergency
-		public Boolean knowsAboutEmergency;
+		public Boolean knowsAboutEarthquake;
         private HealthStatus m_healthStatus;
         public HealthStatus healthStatus
         {
@@ -69,7 +79,11 @@ namespace TDSServer.GroundTask
                 m_currentRoute = value;
             }
         }
-
+		
+        public clsActivityMovement currentRegularActivity;
+        public int currentStartWaypoint;
+        public int currentEndWaypoint;
+        public DPoint lastRoutePoint;
 
         public List<CollisionTime> Collisions = new List<CollisionTime>();
         //private Route m_Route;
@@ -79,17 +93,84 @@ namespace TDSServer.GroundTask
         //        m_Route = route;
             
         //}
+		
+		// YD: event handlers
+        // event handlers for start and end of earthquake
+        public event EarthquakeStarterEventHandler earthquakeStartedEventHandler;
+        public event EarthquakeEndedEventHandler earthquakeEndedEventHandler;
+        // event handler for arrival of forces
+        public event ForcesHaveArrivedEventHandler forcesHaveArrivedEventHandler;
+        // incapacitation and death
+        public event IncapacitationEventHandler incapacitationEventHandler;
+        public event DeathEventHandler deathEventHandler;
+		// ---
 
         public clsGroundAtom(GameObject pGameObject)
         {
 			// Yinon Douchan: Health status and knowledge of emergency
-            knowsAboutEmergency = false;
+            knowsAboutEarthquake = false;
             m_GameObject = pGameObject;
             m_healthStatus = new HealthStatus();
+            lastRoutePoint = new DPoint();
+            clearAllEventSubscriptions();
 			// -------------------------------------------------------
-            ChangeState(new ADMINISTRATIVE_STATE());
+            //VH ChangeState(new ADMINISTRATIVE_STATE());
+        }
+		
+		// YD: fire an event for when forces have arrived
+        public void forcesHaveArrived()
+        {
+            if (forcesHaveArrivedEventHandler != null)
+            {
+                forcesHaveArrivedEventHandler(this, new clsGroundAtomEventArgs(this));
+            }
         }
 
+		// YD: fire an event for when the earthquake started
+        public void earthquakeStarted()
+        {
+            if (earthquakeStartedEventHandler != null)
+            {
+                earthquakeStartedEventHandler(this, new clsGroundAtomEventArgs(this));
+            }
+        }
+		
+		// YD: fire an event for when the earthquake ended
+        public void earthquakeEnded()
+        {
+            if (earthquakeEndedEventHandler != null)
+            {
+                earthquakeEndedEventHandler(this, new clsGroundAtomEventArgs(this));
+            }
+        }
+
+		// YD: fire an event for incapacitation
+        public void gotIncapacitated()
+        {
+            if (incapacitationEventHandler != null)
+            {
+                incapacitationEventHandler(this, new clsGroundAtomEventArgs(this));
+            }
+        }
+
+		// YD: fire an event for death
+        public void gotDead()
+        {
+            if (deathEventHandler != null)
+            {
+                deathEventHandler(this, new clsGroundAtomEventArgs(this));
+            }
+        }
+
+		// YD: clear all event subscriptions
+        public void clearAllEventSubscriptions()
+        {
+            earthquakeStartedEventHandler = null;
+            earthquakeEndedEventHandler = null;
+            forcesHaveArrivedEventHandler = null;
+            incapacitationEventHandler = null;
+            deathEventHandler = null;
+        }
 
         internal void ExecuteState()
         {            
@@ -247,6 +328,11 @@ namespace TDSServer.GroundTask
                         DeltaTimeSec = DeltaTimeSec - timeToPointSec;
                         route_X = currentRoute.arr_legs[i].ToLongn;
                         route_Y = currentRoute.arr_legs[i].ToLatn;
+
+                        //VH
+                        X = route_X;
+                        Y = route_Y;
+
                         currLeg = currLeg + 1;
                         goto LabBegin;
                     }
@@ -275,6 +361,7 @@ namespace TDSServer.GroundTask
                curr_Y = curr_Y + deltaY;
            }
 
+           m_GameObject.m_GameManager.QuadTreeGroundAtom.PositionUpdate(this);
         }
 
 		// Yinon Douchan: Code for re routing to escape point for explosions
@@ -364,7 +451,12 @@ namespace TDSServer.GroundTask
             // add activity to atom
             List<clsActivityBase> atomActivities;
             m_GameObject.m_GroundActivities.TryGetValue(GUID, out atomActivities);
-            atomActivities.Add(panicMovement);
+            //VH
+            if (atomActivities!=null)
+            {
+                atomActivities.Add(panicMovement);
+            }
+          
         }
 
         public void resetMovementData()

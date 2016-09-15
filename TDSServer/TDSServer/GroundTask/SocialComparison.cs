@@ -34,6 +34,13 @@ namespace TDSServer.GroundTask
             return findMostSimilarFromGroup(me, comparisonAtoms);
         }
 
+        // get the atom with the highest Sim() value to me in a structure
+        public static clsGroundAtom findMostSimilarInStructure(clsGroundAtom me, clsPolygon structure)
+        {
+            List<clsGroundAtom> comparisonAtoms = me.m_GameObject.getQuadTreeByStructure(structure).SearchEntities(me.curr_X, me.curr_Y, COMPARISON_RADIUS, isPrecise: true);
+            return findMostSimilarFromGroup(me, comparisonAtoms);
+        }
+
         // get the atom with the highest Sim() value
         public static clsGroundAtom findMostSimilarFromGroup(clsGroundAtom me, List<clsGroundAtom> others)
         {

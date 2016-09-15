@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Windows;
 
 using TDSClient.SAGInterface;
+using TerrainService;
 
 
 //using SAGClient.Forms.GroundTaskControls;
@@ -92,58 +93,92 @@ namespace TDSClient
 
             }
 
-            if (minDistAtom != null && minDistance < SearchRadius)
-             {
-                //Create PopUP menu
-                 if (minDistAtom.AtomClass == "TDSServer.GroundTask.clsGroundAtom")
-                 {
+            SelectMenu = new System.Windows.Controls.ContextMenu();
 
-                     foreach (structTransportCommonProperty Tr in VMMainViewModel.Instance.colGroundAtoms.Values)
-                     {
-                         double  Distance = TerrainService.MathEngine.CalcDistanceForPerformance(Tr.X, Tr.Y, minDistAtom.X, minDistAtom.Y);
-                         if (Distance <= SearchNeiborRadiuse)
-                         {
-                             NeighborList.Add(Tr);
+            SelectMenu.Style = null;
 
-                         }
-                     }
+            DPoint coordinates = new DPoint(e.MapXLongLatWGS84, e.MapYLongLatWGS84);
 
-                     if (NeighborList.Count==1)
-                     {
-                         ShowGroundSelectAtomMenu(null, minDistAtom);
-                     }
-                     else
-                     {
-                       // System.Windows.Controls.ContextMenu SelectMenu = new System.Windows.Controls.ContextMenu();
-                         SelectMenu = new System.Windows.Controls.ContextMenu();
+            // add menu item for adding barriers
+            System.Windows.Controls.MenuItem mBarrier = new System.Windows.Controls.MenuItem();
+            mBarrier.Header = "Add Barrier";
+            mBarrier.Tag = coordinates;
+            mBarrier.Click += miAddBarier_Click;
+            SelectMenu.Items.Add(mBarrier);
 
-                        SelectMenu.Style = null;
-                     
+            System.Windows.Controls.MenuItem mCoordinates = new System.Windows.Controls.MenuItem();
+            mCoordinates.Header = e.MapXLongLatWGS84.ToString() + " " + e.MapYLongLatWGS84.ToString();
+            mCoordinates.Tag = coordinates;
+            mCoordinates.Click += miCoordinates_Click;
+            SelectMenu.Items.Add(mCoordinates);
+            System.Windows.Application.Current.MainWindow.ContextMenu = SelectMenu;
+
+            //if (minDistAtom != null && minDistance < SearchRadius)
+            // {
+            //    //Create PopUP menu
+            //     if (minDistAtom.AtomClass == "TDSServer.GroundTask.clsGroundAtom")
+            //     {
+
+            //         foreach (structTransportCommonProperty Tr in VMMainViewModel.Instance.colGroundAtoms.Values)
+            //         {
+            //             double  Distance = TerrainService.MathEngine.CalcDistanceForPerformance(Tr.X, Tr.Y, minDistAtom.X, minDistAtom.Y);
+            //             if (Distance <= SearchNeiborRadiuse)
+            //             {
+            //                 NeighborList.Add(Tr);
+
+            //             }
+            //         }
+
+            //         if (NeighborList.Count==1)
+            //         {
+            //             ShowGroundSelectAtomMenu(null, minDistAtom);
+            //         }
+            //         else
+            //         {
+            //           // System.Windows.Controls.ContextMenu SelectMenu = new System.Windows.Controls.ContextMenu();
+            //             SelectMenu = new System.Windows.Controls.ContextMenu();
+
+            //            SelectMenu.Style = null;
                        
-                         for (int i = 0; i < NeighborList.Count; i++)
-                         {
-                            // System.Windows.Controls.MenuItem mSelectGroundAtom = new System.Windows.Controls.MenuItem();
-                            // mSelectGroundAtom.Style = null;
+            //             for (int i = 0; i < NeighborList.Count; i++)
+            //             {
+            //                // System.Windows.Controls.MenuItem mSelectGroundAtom = new System.Windows.Controls.MenuItem();
+            //                // mSelectGroundAtom.Style = null;
 
-                             System.Windows.Controls.MenuItem mSelectGroundAtom = new System.Windows.Controls.MenuItem();
-                             mSelectGroundAtom.Header =  NeighborList[i].AtomName;
-                             mSelectGroundAtom.Tag = NeighborList[i];
-                             mSelectGroundAtom.Focusable = false;
-                             mSelectGroundAtom.Click += miName_Click;
-                             SelectMenu.Items.Add(mSelectGroundAtom);
-                         }
+            //                 System.Windows.Controls.MenuItem mSelectGroundAtom = new System.Windows.Controls.MenuItem();
+            //                 mSelectGroundAtom.Header =  NeighborList[i].AtomName;
+            //                 mSelectGroundAtom.Tag = NeighborList[i];
+            //                 mSelectGroundAtom.Focusable = false;
+            //                 mSelectGroundAtom.Click += miName_Click;
+            //                 SelectMenu.Items.Add(mSelectGroundAtom);
+            //             }
 
-                         System.Windows.Application.Current.MainWindow.ContextMenu = SelectMenu;
-                         return;
-                     }
-
-
+            //             System.Windows.Application.Current.MainWindow.ContextMenu = SelectMenu;
+            //             return;
+            //         }
 
 
 
-                 }
-             }
+
+
+            //     }
+            // }
            
+        }
+
+        async void miAddBarier_Click(object sender, RoutedEventArgs e)
+        {
+            // add a police barrier in the closest route
+            DPoint coordinates = (DPoint)((System.Windows.Controls.MenuItem)sender).Tag;
+            enOSMhighwayFilter highwayFilter = enOSMhighwayFilter.Undefined;
+            shPointId PointId = await clsRoadRoutingWebApi.GetNearestPointIdOnRoad("0", highwayFilter, coordinates.X, coordinates.Y);
+        }
+
+        void miCoordinates_Click(object sender, RoutedEventArgs e)
+        {
+            // copy coordinates to clipboard
+            DPoint coordinates = (DPoint)((System.Windows.Controls.MenuItem)sender).Tag;
+            Clipboard.SetText(coordinates.X + ", " + coordinates.Y);
         }
 
         void miName_Click(object sender, RoutedEventArgs e)

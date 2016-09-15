@@ -1,80 +1,24 @@
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\bin\Debug\System.Data.SqlServerCe.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.xml
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Properties.Resources.resources
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.dll
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.pdb
-C:\Develope\KingsGame\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.pdb
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\bin\Debug\System.Data.SqlServerCe.dll
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.xml
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Properties.Resources.resources
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
-C:\Develope\KingsGameMVVM\GameClient\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\bin\Debug\System.Data.SqlServerCe.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.xml
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Properties.Resources.resources
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.dll
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.pdb
-C:\Develope\SAGClient\GameClient\GameClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.Core\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.Core\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.Core\bin\Debug\System.Data.SqlServerCe.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.Core\obj\Debug\GMap.NET.Properties.Resources.resources
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.dll
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.pdb
-C:\Develope\SAG Localy\SAGClient\SAGClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache
-C:\Develope\SAGClient\GMap.NET.Core\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\SAGClient\GMap.NET.Core\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\SAGClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.dll
-C:\Develope\SAGClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\SAGClient\GMap.NET.Core\bin\Debug\System.Data.SqlServerCe.dll
-C:\Develope\SAGClient\GMap.NET.Core\obj\Debug\GMap.NET.Properties.Resources.resources
-C:\Develope\SAGClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
-C:\Develope\SAGClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.dll
-C:\Develope\SAGClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.pdb
-C:\Develope\SAGClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache
-C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\x64\SQLite.Interop.dll
-C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\x86\SQLite.Interop.dll
-C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.dll
-C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.pdb
-C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.dll
-C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SqlServerCe.dll
-C:\Develope\TDS\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.xml
-C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Properties.Resources.resources
-C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
-C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.dll
-C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.pdb
-C:\Develope\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache
-C:\dev\TDS\TDSClient\GMap.NET.Core\bin\Debug\x64\SQLite.Interop.dll
-C:\dev\TDS\TDSClient\GMap.NET.Core\bin\Debug\x86\SQLite.Interop.dll
-C:\dev\TDS\TDSClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.dll
-C:\dev\TDS\TDSClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.pdb
-C:\dev\TDS\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.dll
-C:\dev\TDS\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SqlServerCe.dll
-C:\dev\TDS\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.xml
-C:\dev\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache
-C:\dev\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Properties.Resources.resources
-C:\dev\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
-C:\dev\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.dll
-C:\dev\TDS\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.pdb
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\bin\Debug\x64\SQLite.Interop.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\bin\Debug\x86\SQLite.Interop.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.pdb
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SqlServerCe.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.xml
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Properties.Resources.resources
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.dll
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.pdb
+C:\Develope\TDS_ST\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\bin\Debug\x64\SQLite.Interop.dll
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\bin\Debug\x86\SQLite.Interop.dll
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.dll
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\bin\Debug\GMap.NET.Core.pdb
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.dll
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SqlServerCe.dll
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\bin\Debug\System.Data.SQLite.xml
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csprojResolveAssemblyReference.cache
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Properties.Resources.resources
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.csproj.GenerateResource.Cache
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.dll
+C:\dev\TDS_polygon\TDSClient\GMap.NET.Core\obj\Debug\GMap.NET.Core.pdb
