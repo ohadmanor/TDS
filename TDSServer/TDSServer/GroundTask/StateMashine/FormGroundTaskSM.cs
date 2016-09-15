@@ -6,15 +6,46 @@ using System.Threading.Tasks;
 
 namespace TDSServer.GroundTask.StateMashine
 {
+	// YD: Event arguments to be passed
+    public class clsGroundAtomEventArgs : EventArgs
+    {
+        public clsGroundAtom groundAtom;
+
+        public clsGroundAtomEventArgs(clsGroundAtom groundAtom) {
+            this.groundAtom = groundAtom;
+        }
+
+    }
+	
+	// YD: Event arguments to be passed when in structure
+    public class AtomAndStructureEventArgs : EventArgs
+    {
+        public clsGroundAtom groundAtom;
+        public clsPolygon Structure;
+
+        public AtomAndStructureEventArgs(clsGroundAtom groundAtom, clsPolygon Structure)
+        {
+            this.groundAtom = groundAtom;
+            this.Structure = Structure;
+        }
+
+    }
+
     public class BasicStateFormGroundTaskOrder
     {
-
         public BasicStateFormGroundTaskOrder PrevState;
         public bool InitialActivityExecuted = false;
+
         public BasicStateFormGroundTaskOrder()
         { }
         public virtual void Enter(clsGroundAtom refGroundAtom)
-        { }
+        {
+			// YD: register default event listeners
+            refGroundAtom.earthquakeStartedEventHandler += earthquakeStartedDefaultEventHandler;
+            refGroundAtom.earthquakeStartedEventHandler += earthquakeEndedDefaultEventHandler;
+            refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedDefaultEventHandler;
+			// ---
+        }
         public virtual void Execute(clsGroundAtom refGroundAtom)
         { }
         public virtual void Exit(clsGroundAtom refGroundAtom)
@@ -22,6 +53,110 @@ namespace TDSServer.GroundTask.StateMashine
 
         public virtual void WaitAllThreadingTask(clsGroundAtom refGroundAtom)
         { }
+
+		// YD: default event handler for when forces arrive
+        protected void forcesHaveArrivedDefaultEventHandler(object sender, EventArgs e)
+        {
+			// default action is simply going to the nearest police barrier
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+            clsActivityMovement barrierMovement = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+            refGroundAtom.resetMovementData();
+            refGroundAtom.ChangeState(new GO_TO_POLICE_BARRIER_STATE(barrierMovement));
+            return;
+        }
+		
+		// YD: default event handler for when an earthquake starts when not in structure
+        protected void earthquakeStartedDefaultEventHandler(object sender, EventArgs e)
+        {
+			// default action is holding on to an immobile object, be it the ground, a fence, a car etc.
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+            refGroundAtom.knowsAboutEarthquake = true;
+
+            clsActivityMovement activity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+            refGroundAtom.lastRoutePoint.x = refGroundAtom.X_Route;
+            refGroundAtom.lastRoutePoint.y = refGroundAtom.Y_Route;
+            refGroundAtom.ChangeState(new HOLD_ON_TO_OBJECT_STATE(activity));
+            return;
+        }
+		
+		// YD: default event handler for when an earthquake ends when not in structure
+        protected void earthquakeEndedDefaultEventHandler(object sender, EventArgs e)
+        {
+			// default action is probabilisticly choosing from curiosity, helping others or simply returning to regular activity
+			
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+            List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 50, isPrecise: true);
+            List<clsGroundAtom> casualtiesNearby = new List<clsGroundAtom>();
+			
+            // should the atom be curious?
+            foreach (clsGroundAtom atom in atomsNearby)
+            {
+                if (atom.healthStatus.isIncapacitated || atom.healthStatus.isDead)
+                {
+                    casualtiesNearby.Add(atom);
+                }
+            }
+
+            if (casualtiesNearby.Count() > 0)
+            {
+                double randomAction = Util.random.NextDouble();
+                int randomCasualty = Util.random.Next(casualtiesNearby.Count());
+                clsActivityMovement curiousityActivity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                if (randomAction < 0.3)
+                {
+					// get curious - not in every day you see an injured man laying on the ground
+                    refGroundAtom.ChangeState(new CURIOSITY_MOVEMENT_STATE(curiousityActivity, casualtiesNearby[randomCasualty]));
+                }
+                else if (randomAction >= 0.3 && randomAction < 0.8)
+                {
+					// try to help an injured or dead man
+                    refGroundAtom.ChangeState(new HELP_OTHER_STATE(curiousityActivity, casualtiesNearby[randomCasualty]));
+                }
+                else
+                {
+					// go back to regular activity
+                    getBackToRegularMovement(refGroundAtom);
+                }
+            }
+            else
+            {
+				// go back to regular activity
+                getBackToRegularMovement(refGroundAtom);
+            }
+        }
+		
+		// default event handler for incapacitation
+        protected void incapacitationDefaultEventHandler(object sender, EventArgs e)
+        {
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+            refGroundAtom.ChangeState(new INCAPACITATED_STATE());
+            return;
+        }
+		
+		// default event handler for death
+        protected void deathDefaultEventHandler(object sender, EventArgs e)
+        {
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+            refGroundAtom.ChangeState(new DEAD_STATE());
+            return;
+        }
+		
+		// get back to regular activity
+        private void getBackToRegularMovement(clsGroundAtom refGroundAtom)
+        {
+            clsActivityMovement backToNormal = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+            PointData closestPoint = refGroundAtom.m_GameObject.lookForClosestRegularRoute(refGroundAtom);
+            Route route = RouteUtils.typRouteToRoute(closestPoint.route);
+            List<DPoint> trimmedRoute = new List<DPoint>();
+            for (int i = closestPoint.legNum; i < route.Points.Count(); i++)
+                trimmedRoute.Add(route.Points.ElementAt(i));
+            route.Points = trimmedRoute;
+            refGroundAtom.currentLeg = 1;
+            refGroundAtom.currentStartWaypoint = closestPoint.routeIndex1;
+            refGroundAtom.currentEndWaypoint = closestPoint.routeIndex2;
+            refGroundAtom.resetMovementData();
+            refGroundAtom.ChangeState(new GET_ON_SIDEWALK(backToNormal, refGroundAtom.lastRoutePoint, route));
+        }
     }
     public class ADMINISTRATIVE_STATE : BasicStateFormGroundTaskOrder
     {
@@ -31,16 +166,14 @@ namespace TDSServer.GroundTask.StateMashine
         }
         public override void Execute(clsGroundAtom refGroundAtom)
         {
-		    // Yinon Douchan: Code for simulating an ambulance - should be done differently, I know
-            if (refGroundAtom.MyName.StartsWith("Ambulance"))
-            {
-                refGroundAtom.ChangeState(new AMBULANCE_ADMINISTRATIVE_STATE());
-                return;
-            }
+            //VH
+            
 
-            if (!refGroundAtom.knowsAboutEmergency && refGroundAtom.m_GameObject.emergencyOccurred())
+
+
+            if (!refGroundAtom.knowsAboutEarthquake && refGroundAtom.m_GameObject.earthquakeStarted())
             {
-                refGroundAtom.knowsAboutEmergency = true;
+                refGroundAtom.knowsAboutEarthquake = true;
 
                 clsActivityMovement movement = new clsActivityMovement();
                 refGroundAtom.reRouteToEscape(movement);
@@ -71,6 +204,7 @@ namespace TDSServer.GroundTask.StateMashine
 
 
            // refGroundAtom.SetRoute(refActivityMovement.RouteActivity);
+             base.Enter(refGroundAtom);
         }
 
 
@@ -103,8 +237,8 @@ namespace TDSServer.GroundTask.StateMashine
 
             if (refGroundAtom.currentRoute == null) return;
 
-
-            if (refGroundAtom.currentLeg > refGroundAtom.currentRoute.arr_legs.Count)  //-1)  // refActivityMovement.RouteActivity.Points.Count()-1)
+           
+            if ( refGroundAtom.currentLeg > refGroundAtom.currentRoute.arr_legs.Count)  //-1)  // refActivityMovement.RouteActivity.Points.Count()-1)
             {
                 // Fix 01 Start
                 int nl = refGroundAtom.currentRoute.arr_legs.Count;
@@ -114,40 +248,13 @@ namespace TDSServer.GroundTask.StateMashine
                 refGroundAtom.curr_Y = yEnd;
                 // Fix 01 End
 
-			    // Yinon Douchan: Commented out in order to make movement cyclic.
-                //refActivityMovement.isEnded = true;
-                //refActivityMovement.isActive = false;
-                //refGroundAtom.currentRoute = null;
-                //refGroundAtom.ChangeState(new ADMINISTRATIVE_STATE());
-				// --------------------------------------------------------------
-
-				// Yinon Douchan: Only for cyclic movement
-                refGroundAtom.currentLeg = 1;
-                refGroundAtom.X_Route = refGroundAtom.currentRoute.arr_legs[0].FromLongn;
-                refGroundAtom.Y_Route = refGroundAtom.currentRoute.arr_legs[0].FromLatn;
-
-
-                if (refGroundAtom.Offset_Azimuth != 0.0 || refGroundAtom.Offset_Distance != 0.0)
-                {
-                    double initAzimDepl;
-                    double initNextRoute_X = 0;
-                    double initNextRoute_Y = 0;
-                    int initNextLeg = 0;
-
-                    refGroundAtom.VirtualMoveOnRoute(refGroundAtom.m_GameObject.m_GameManager.GroundCycleResolution, refGroundAtom.X_Route, refGroundAtom.Y_Route, out initNextRoute_X, out initNextRoute_Y, out initNextLeg);
-                    double initCurrentAzimuth = Util.Azimuth2Points(refGroundAtom.X_Route, refGroundAtom.Y_Route, initNextRoute_X, initNextRoute_Y);
-
-                    initAzimDepl = initCurrentAzimuth + refGroundAtom.Offset_Azimuth;
-                    if (initAzimDepl >= 360) initAzimDepl = initAzimDepl - 360;
-
-                    TerrainService.MathEngine.CalcProjectedLocationNew(initNextRoute_X, initNextRoute_Y, initAzimDepl, refGroundAtom.Offset_Distance, out refGroundAtom.curr_X, out refGroundAtom.curr_Y);//, true);
-                }
-                else
-                {
-                    refGroundAtom.curr_X = refGroundAtom.currentRoute.arr_legs[0].FromLongn;
-                    refGroundAtom.curr_Y = refGroundAtom.currentRoute.arr_legs[0].FromLatn;
-                }
-				// --------------------------------------------------------------------
+                refActivityMovement.isEnded = true;
+                refActivityMovement.isActive = false;
+                refGroundAtom.currentRoute = null;
+                refGroundAtom.ChangeState(new ADMINISTRATIVE_STATE());
+                
+                
+                
                 return;
             }
             
@@ -314,6 +421,7 @@ namespace TDSServer.GroundTask.StateMashine
            }
 
 
+
            //List<clsGroundAtom> colAtoms = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 10, isPrecise: true);
            //foreach (clsGroundAtom atom in colAtoms)
            //{
@@ -339,6 +447,9 @@ namespace TDSServer.GroundTask.StateMashine
            //}
         }
     }
+
+      
+
 
     class FormGroundTaskSM
     {

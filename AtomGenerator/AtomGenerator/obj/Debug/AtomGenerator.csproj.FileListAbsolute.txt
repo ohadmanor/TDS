@@ -1,0 +1,8 @@
+C:\dev\TDS\AtomGenerator\AtomGenerator\bin\Debug\AtomGenerator.exe.config
+C:\dev\TDS\AtomGenerator\AtomGenerator\bin\Debug\AtomGenerator.exe
+C:\dev\TDS\AtomGenerator\AtomGenerator\bin\Debug\AtomGenerator.pdb
+C:\dev\TDS\AtomGenerator\AtomGenerator\obj\Debug\AtomGenerator.csprojResolveAssemblyReference.cache
+C:\dev\TDS\AtomGenerator\AtomGenerator\obj\Debug\AtomGenerator.exe
+C:\dev\TDS\AtomGenerator\AtomGenerator\obj\Debug\AtomGenerator.pdb
+C:\dev\TDS\AtomGenerator\AtomGenerator\bin\Debug\Npgsql.dll
+C:\dev\TDS\AtomGenerator\AtomGenerator\bin\Debug\Npgsql.xml

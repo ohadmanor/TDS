@@ -14,13 +14,13 @@ namespace TDSServer.GroundTask.StateMashine
         }
         public override void Execute(clsGroundAtom refGroundAtom)
         {
-            if (!refGroundAtom.knowsAboutEmergency && refGroundAtom.m_GameObject.emergencyOccurred())
+            if (!refGroundAtom.knowsAboutEarthquake && refGroundAtom.m_GameObject.earthquakeStarted())
             {
-                refGroundAtom.knowsAboutEmergency = true;
+                refGroundAtom.knowsAboutEarthquake = true;
 
                 refGroundAtom.resetMovementData();
-                Route straightLine = RoutePlanner.createRoute(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y), refGroundAtom.m_GameObject.getExplosionLocation());
-                clsActivityMovement arrivalMovement = RoutePlanner.createActivityAndStart(refGroundAtom, 80, straightLine);
+                Route straightLine = RouteUtils.createRoute(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y), refGroundAtom.m_GameObject.getExplosionLocation());
+                clsActivityMovement arrivalMovement = RouteUtils.createActivityAndStart(refGroundAtom, 80, straightLine);
 
                 refGroundAtom.ChangeState(new AMBULANCE_ARRIVAL_MOVEMENT_STATE(arrivalMovement));
                 return;
@@ -52,6 +52,8 @@ namespace TDSServer.GroundTask.StateMashine
 
         public override void Execute(clsGroundAtom refGroundAtom)
         {
+            if (refGroundAtom.currentRoute == null) return;
+
             if (refGroundAtom.currentLeg > refGroundAtom.currentRoute.arr_legs.Count)  //-1)  // refActivityMovement.RouteActivity.Points.Count()-1)
             {
                 // arrived to ground zero. Now search for casualties
@@ -67,8 +69,8 @@ namespace TDSServer.GroundTask.StateMashine
                     if (atom.healthStatus.isDead || atom.healthStatus.isIncapacitated)
                     {
                         refGroundAtom.resetMovementData();
-                        Route straightLine = RoutePlanner.createRoute(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y), new DPoint(atom.curr_X, atom.curr_Y));
-                        clsActivityMovement extractionMovement = RoutePlanner.createActivityAndStart(refGroundAtom, 5, straightLine);
+                        Route straightLine = RouteUtils.createRoute(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y), new DPoint(atom.curr_X, atom.curr_Y));
+                        clsActivityMovement extractionMovement = RouteUtils.createActivityAndStart(refGroundAtom, 5, straightLine);
 
                         refGroundAtom.ChangeState(new AMBULANCE_GO_TO_CASUALTY_STATE(extractionMovement, atom));
 
@@ -97,7 +99,7 @@ namespace TDSServer.GroundTask.StateMashine
 
         public override void Enter(clsGroundAtom refGroundAtom)
         {
-            refGroundAtom.currentRoute = RoutePlanner.planStraightLineRoute(refActivityMovement.RouteActivity.Points.ElementAt(0),
+            refGroundAtom.currentRoute = RouteUtils.planStraightLineRoute(refActivityMovement.RouteActivity.Points.ElementAt(0),
                                                                 refActivityMovement.RouteActivity.Points.ElementAt(1),
                                                                 refActivityMovement.RouteActivity.RouteName);
             refGroundAtom.currentSpeed = refActivityMovement.Speed;
@@ -115,8 +117,8 @@ namespace TDSServer.GroundTask.StateMashine
                 points.Add(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y));
                 points.Add(new DPoint(refGroundAtom.m_GameObject.getExplosionLocation().x, refGroundAtom.m_GameObject.getExplosionLocation().y));
                 points.Add(new DPoint(34.8514473088014, 32.1008536878526));
-                Route route = RoutePlanner.createRoute(points);
-                clsActivityMovement evacuationMovement = RoutePlanner.createActivityAndStart(refGroundAtom, 80, route);
+                Route route = RouteUtils.createRoute(points);
+                clsActivityMovement evacuationMovement = RouteUtils.createActivityAndStart(refGroundAtom, 80, route);
                 refGroundAtom.ChangeState(new AMBULANCE_EVACUATION_MOVEMENT_STATE(evacuationMovement, refCasualty));
 
                 return;
@@ -193,14 +195,14 @@ namespace TDSServer.GroundTask.StateMashine
                 refActivityMovement.isActive = false;
                 refGroundAtom.currentRoute = null;
 
-                refGroundAtom.knowsAboutEmergency = true;
+                refGroundAtom.knowsAboutEarthquake = true;
 
                 DPoint ambulanceStartPoint = new DPoint(34.8514473088014, 32.1008536878526);
                 refGroundAtom.curr_X = ambulanceStartPoint.x;
                 refGroundAtom.curr_Y = ambulanceStartPoint.y;
-                Route straightLine = RoutePlanner.createRoute(new DPoint(ambulanceStartPoint.x, ambulanceStartPoint.y),
+                Route straightLine = RouteUtils.createRoute(new DPoint(ambulanceStartPoint.x, ambulanceStartPoint.y),
                                                                         refGroundAtom.m_GameObject.getExplosionLocation());
-                clsActivityMovement arrivalMovement = RoutePlanner.createActivityAndStart(refGroundAtom, 80, straightLine);
+                clsActivityMovement arrivalMovement = RouteUtils.createActivityAndStart(refGroundAtom, 80, straightLine);
 
                 refGroundAtom.ChangeState(new AMBULANCE_ARRIVAL_MOVEMENT_STATE(arrivalMovement));
 

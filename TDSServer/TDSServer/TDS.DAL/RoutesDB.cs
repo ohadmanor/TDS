@@ -162,6 +162,50 @@ namespace TDSServer.TDS.DAL
             return null;
 
         }
+		
+		// YD: Get all routes starting with a specific string
+        public static IEnumerable<Route> getRoutesWithNameStartingWith(String name)
+        {
+            try
+            {
+
+                List<Route> Routes = null;
+                List<UserMapPreference> MapPreferenceList = new List<UserMapPreference>();
+                string sql = "select * from routes where route_name like '" + name + "%'";
+                using (NpgsqlConnection connection = new NpgsqlConnection(strPostGISConnection))
+                using (NpgsqlDataAdapter da = new NpgsqlDataAdapter(sql, connection))
+                {
+                    DataSet ds = new DataSet();
+                    DataTable dt = new DataTable();
+                    ds.Reset();
+                    da.Fill(ds);
+                    dt = ds.Tables[0];
+
+                    if (dt.Rows.Count > 0)
+                    {
+                        Routes = new List<Route>();
+                        foreach (DataRow row in dt.Rows)
+                        {
+                            Route route = new Route();
+                            route.RouteName = row["route_name"].ToString();
+                            route.RouteGuid = row["route_guid"].ToString();
+                            route.Points = getRoutePoints(route.RouteGuid);
+                            Routes.Add(route);
+                        }
+                    }
+
+
+                    return Routes;
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+
+
+            return null;
+        }
 
 
 

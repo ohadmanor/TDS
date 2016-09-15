@@ -4,7 +4,7 @@
 library
 C#
 .cs
-C:\Develope\TDS\TDSClient\GMap.NET.WindowsPresentation\obj\x64\Debug\
+C:\Develope\TDS_ST\TDSClient\GMap.NET.WindowsPresentation\obj\x64\Debug\
 GMap.NET.WindowsPresentation
 none
 false
@@ -13,7 +13,7 @@ TRACE;DEBUG
 1544584187
 
 92064097447
-8480852234
+8681251449
 GMap.NET.WindowsPresentation\TilePrefetcher.xaml;
 
 False

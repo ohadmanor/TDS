@@ -5,323 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Npgsql;
 
-namespace AtomGenerator
+namespace DBUtils
 {
-    class Activity
-    {
-        public int activityId;
-        public String atomGuid;
-        public int activitySeqNumber;
-        public int activityType;
-        public String startActivityOffset;
-        public String durationActivity;
-        public int speed;
-        public String routeGuid;
-        public double refX;
-        public double refY;
-
-        public Activity(int activityId, String atomGuid, int activitySeqNumber, int activityType, String startActivityOffset, String durationActivity,
-                        int speed, String routeGuid, double refX, double refY)
-        {
-            this.activityId = activityId;
-            this.atomGuid = atomGuid;
-            this.activitySeqNumber = activitySeqNumber;
-            this.activityType = activityType;
-            this.startActivityOffset = startActivityOffset;
-            this.durationActivity = durationActivity;
-            this.speed = speed;
-            this.routeGuid = routeGuid;
-            this.refX = refX;
-            this.refY = refY;
-        }
-
-    }
-
-    class AtomObject
-    {
-        public AtomObject(String name, int countryId, double pointX, double pointY)
-        {
-            guid = Util.CreateGuid();
-            this.name = name;
-            this.countryId = countryId;
-            this.pointX = pointX;
-            this.pointY = pointY;
-        }
-
-        public String guid;
-        public String name;
-        public int countryId;
-        public double pointX;
-        public double pointY;
-    }
-
-    class Route
-    {
-        public String guid;
-        public String name;
-        public int countryId;
-        public int routeTypeId;
-        public String owner;
-        public List<DPoint> routePoints;
-    }
-
-    class DPoint
-    {
-        public double x;
-        public double y;
-
-        public DPoint(double x, double y)
-        {
-            this.x = x;
-            this.y = y;
-        }
-    }
-
-    class RoutesReader
-    {
-        private NpgsqlConnection connection;
-
-        public RoutesReader(NpgsqlConnection connection)
-        {
-            this.connection = connection;
-        }
-
-        public List<Route> readAllRoutes()
-        {
-            List<Route> routes = new List<Route>();
-
-            NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM routes", connection);
-            NpgsqlDataReader reader = command.ExecuteReader();
-
-            // read the routes themselves
-            while (reader.Read())
-            {
-                Route route = new Route();
-                route.routePoints = new List<DPoint>();
-                route.guid = (reader[0] == DBNull.Value) ? null : (String)reader[0];
-                route.name = (reader[1] == DBNull.Value) ? null : (String)reader[1];
-                route.countryId = (reader[2] == DBNull.Value) ? -1 : (int)reader[2];
-                route.routeTypeId = (reader[3] == DBNull.Value) ? -1 : (int)reader[3];
-                route.owner = (reader[4] == DBNull.Value) ? null : (String)reader[4];
-
-                routes.Add(route);
-            }
-
-            reader.Close();
-
-            // now for all route add his points
-            foreach (Route route in routes)
-            {
-                command.CommandText = "SELECT * FROM routes_points WHERE route_guid=:guid";
-                command.Parameters.Add(new NpgsqlParameter("guid", route.guid));
-
-                reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    DPoint point = new DPoint((double)reader[2], (double)reader[3]);
-                    route.routePoints.Add(point);
-                }
-
-                reader.Close();
-            }
-
-            return routes;
-        }
-
-        public Route readRouteByName(String name)
-        {
-            NpgsqlCommand command = new NpgsqlCommand("SELECT * FROM routes WHERE route_name=:name", connection);
-            command.Parameters.Add(new NpgsqlParameter("name", name));
-
-            NpgsqlDataReader reader = command.ExecuteReader();
-
-            // get route (if there is one, if not YOU GET NOTHING! DEAL WITH IT!)
-            if (!reader.Read()) return null;
-
-            Route route = new Route();
-            route.routePoints = new List<DPoint>();
-            route.guid = (reader[0] == DBNull.Value) ? null : (String)reader[0];
-            route.name = (reader[1] == DBNull.Value) ? null : (String)reader[1];
-            route.countryId = (reader[2] == DBNull.Value) ? -1 : (int)reader[2];
-            route.routeTypeId = (reader[3] == DBNull.Value) ? -1 : (int)reader[3];
-            route.owner = (reader[4] == DBNull.Value) ? null : (String)reader[4];
-
-            reader.Close();
-
-            // get route points
-            command.CommandText = "SELECT * FROM routes_points WHERE route_guid=:guid";
-            command.Parameters.Add(new NpgsqlParameter("guid", route.guid));
-
-            reader = command.ExecuteReader();
-
-            while (reader.Read())
-            {
-                DPoint point = new DPoint((double)reader[2], (double)reader[3]);
-                route.routePoints.Add(point);
-            }
-
-            reader.Close();
-
-            return route;
-        }
-    }
-
-    class RouteGenerator
-    {
-        private NpgsqlConnection connection;
-
-        public RouteGenerator(NpgsqlConnection connection)
-        {
-            this.connection = connection;
-        }
-
-        public void generateReversedRoute(String routeName)
-        {
-            generateReversedRoute(routeName, routeName + "_reversed");
-        }
-
-        public void generateReversedRoute(String routeName, String reversedRouteName)
-        {
-            RoutesReader routesReader = new RoutesReader(connection);
-            Route route = routesReader.readRouteByName(routeName);
-            Route reversedRoute = new Route();
-            reversedRoute.guid = Util.CreateGuid();
-            reversedRoute.name = reversedRouteName;
-            reversedRoute.owner = route.owner;
-            reversedRoute.routeTypeId = route.routeTypeId;
-            reversedRoute.routePoints = new List<DPoint>();
-
-            // copy points to reversed route
-            foreach (DPoint point in route.routePoints)
-            {
-                reversedRoute.routePoints.Add(point);
-            }
-
-            // reverse route points
-            reversedRoute.routePoints.Reverse();
-
-            //after reading route generate a new GUID for it, change its name and reverse its route points
-            saveRouteToDB(reversedRoute);
-        }
-
-        public void saveRouteToDB(Route route)
-        {
-            // add the route itself
-            NpgsqlCommand addRouteCommand = new NpgsqlCommand("INSERT INTO routes(route_guid, route_name, countryid, routetypeid, owner) VALUES (:guid, :name, :countryId, :typeid, :owner)", connection);
-            addRouteCommand.Parameters.Add(new NpgsqlParameter("guid", route.guid));
-            addRouteCommand.Parameters.Add(new NpgsqlParameter("name", route.name));
-            addRouteCommand.Parameters.Add(new NpgsqlParameter("countryId", route.countryId));
-            addRouteCommand.Parameters.Add(new NpgsqlParameter("typeid", route.routeTypeId));
-            addRouteCommand.Parameters.Add(new NpgsqlParameter("owner", route.owner != null ? route.owner : ""));
-            addRouteCommand.ExecuteNonQuery();
-
-            // add its points
-            for (int i = 0; i < route.routePoints.Count; i++)
-            {
-                String query = "INSERT INTO routes_points(route_guid, point_num, pointx, pointy)"
-                             + " VALUES (:guid, :point_num, :x, :y)";
-                NpgsqlCommand addRoutePointsCommand = new NpgsqlCommand(query, connection);
-                addRoutePointsCommand.Parameters.Add(new NpgsqlParameter("guid", route.guid));
-                addRoutePointsCommand.Parameters.Add(new NpgsqlParameter("point_num", i));
-                addRoutePointsCommand.Parameters.Add(new NpgsqlParameter("x", route.routePoints[i].x));
-                addRoutePointsCommand.Parameters.Add(new NpgsqlParameter("y", route.routePoints[i].y));
-                addRoutePointsCommand.ExecuteNonQuery();
-            }
-        }
-    }
-
-    class AtomGenerator
-    {
-        private NpgsqlConnection connection;
-
-        public AtomGenerator(NpgsqlConnection connection)
-        {
-            this.connection = connection;
-        }
-
-        public void deleteAllAtomsAndActivities()
-        {
-            // delete all atoms
-            String query = "TRUNCATE table atomobjects";
-            NpgsqlCommand command = new NpgsqlCommand(query, connection);
-            command.ExecuteNonQuery();
-
-            // delete all activities
-            query = "TRUNCATE table activites";
-            command.CommandText = query;
-            command.ExecuteNonQuery();
-
-            // delete all tree objects
-            query = "TRUNCATE table treeobject";
-            command.CommandText = query;
-            command.ExecuteNonQuery();
-        }
-
-        public void createAtom(AtomObject atom)
-        {
-            // save the object to the database
-            String query = "INSERT INTO atomobjects(atom_guid, atom_name, countryid, pointx, pointy) VALUES (:guid, :name, :countryId, :x, :y)";
-            NpgsqlCommand command = new NpgsqlCommand(query, connection);
-            command.Parameters.Add(new NpgsqlParameter("guid", atom.guid));
-            command.Parameters.Add(new NpgsqlParameter("name", atom.name));
-            command.Parameters.Add(new NpgsqlParameter("countryId", atom.countryId));
-            command.Parameters.Add(new NpgsqlParameter("x", atom.pointX));
-            command.Parameters.Add(new NpgsqlParameter("y", atom.pointY));
-            command.ExecuteNonQuery();
-        }
-
-        public void createActivityToAtom(Activity activity, AtomObject atom)
-        {
-            // TODO - read from sequence
-
-            String query = "INSERT INTO activites(activityid, atom_guid, activity_seqnumber, activitytype,"
-                + " startactivityoffset, durationactivity, speed, route_guid, referencepointx, referencepointy)"
-                + " VALUES (:id, :atomGuid, :activitySeq, :activityType, :startOffset, :duration, :speed, :routeGuid, :refX, :refY)";
-            NpgsqlCommand command = new NpgsqlCommand(query, connection);
-            command.Parameters.Add(new NpgsqlParameter("id", activity.activityId));
-            command.Parameters.Add(new NpgsqlParameter("atomGuid", activity.atomGuid));
-            command.Parameters.Add(new NpgsqlParameter("activitySeq", activity.activitySeqNumber));
-            command.Parameters.Add(new NpgsqlParameter("activityType", activity.activityType));
-            command.Parameters.Add(new NpgsqlParameter("startOffset", activity.startActivityOffset));
-            command.Parameters.Add(new NpgsqlParameter("duration", activity.durationActivity));
-            command.Parameters.Add(new NpgsqlParameter("speed", activity.speed));
-            command.Parameters.Add(new NpgsqlParameter("routeGuid", activity.routeGuid));
-            command.Parameters.Add(new NpgsqlParameter("refX", activity.refX));
-            command.Parameters.Add(new NpgsqlParameter("refY", activity.refY));
-            command.ExecuteNonQuery();
-
-            // TODO - increment seuquence
-        }
-
-        public void addAtomToTreeObject(AtomObject atom)
-        {
-            String query = "INSERT INTO treeobject(identification, guid, parentguid, countryid, platformcategoryid, platformtype, formationtypeid)"
-                         + " VALUES (:identification, :guid, :parentguid, :countryid, :platformcategoryid, :platformtype, :formationtypeid)";
-            NpgsqlCommand command = new NpgsqlCommand(query, connection);
-            command.Parameters.Add(new NpgsqlParameter("identification", atom.name));
-            command.Parameters.Add(new NpgsqlParameter("guid", atom.guid));
-            command.Parameters.Add(new NpgsqlParameter("parentguid", ""));
-            command.Parameters.Add(new NpgsqlParameter("countryid", atom.countryId));
-            command.Parameters.Add(new NpgsqlParameter("platformcategoryid", 1));
-            command.Parameters.Add(new NpgsqlParameter("platformtype", ""));
-            command.Parameters.Add(new NpgsqlParameter("formationtypeid", 1));
-            command.ExecuteNonQuery();
-        }
-    }
-
-    class Util
-    {
-        public static readonly Random rand = new Random();
-
-        public static string CreateGuid()
-        {
-            Guid g = Guid.NewGuid();
-            string guid = g.ToString();
-
-            return guid.Replace("-", "");
-        }
-    }
-
     class Program
     {
         static void addAtomsToRoute(Route route, AtomGenerator generator, int count)
@@ -354,9 +39,9 @@ namespace AtomGenerator
                 generator.addAtomToTreeObject(atom);
             }
         }
-        static void Main(string[] args)
+
+        private static void addAtoms(String connectionParams)
         {
-            String connectionParams = "Server=localhost;Port=5432;User Id=postgres;Password=yy11yy11;Database=TDS;";
             NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
             connection.Open();
             NpgsqlTransaction transaction = connection.BeginTransaction();
@@ -374,13 +59,13 @@ namespace AtomGenerator
                 //Route source3 = routesReader.readRouteByName("Source3");
                 //Route cornerRoute = routesReader.readRouteByName("Corner");
 
-                addAtomsToRoute(source1, generator, 100);
-                addAtomsToRoute(source2, generator, 100);
+                //addAtomsToRoute(source1, generator, 100);
+                //addAtomsToRoute(source2, generator, 100);
                 //addAtomsToRoute(source3, generator, 100);
                 //addAtomsToRoute(cornerRoute, generator);
-                AtomObject ambulance = new AtomObject("Ambulance1", -1, 34.8514473088014, 32.1008536878526);
-                generator.createAtom(ambulance);
-                generator.addAtomToTreeObject(ambulance);
+                //AtomObject ambulance = new AtomObject("Ambulance1", -1, 34.8514473088014, 32.1008536878526);
+                //generator.createAtom(ambulance);
+                //generator.addAtomToTreeObject(ambulance);
 
                 //routeGenerator.generateReversedRoute("Escape3");
 
@@ -399,6 +84,308 @@ namespace AtomGenerator
             }
 
             connection.Close();
+        }
+
+        private static void addDubekPolygonOpenings(String connectionParams)
+        {
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlTransaction transaction = connection.BeginTransaction();
+
+            int[] edgesToAdd = new int[] { 0, 4, 5 };
+
+            try
+            {
+                // get polygon points
+                PolygonDB db = new PolygonDB(connection);
+                Polygon polygon = db.getPolygonByName("Polygon1");
+                List<PolygonPoint> points = db.getPolygonPointsByPolygonGUID(polygon.guid);
+                
+                // add an opening
+                foreach (int i in edgesToAdd)
+                {
+                    double openingX = (points[i].x + points[(i + 1) % points.Count()].x) / 2;
+                    double openingY = (points[i].y + points[(i + 1) % points.Count()].y) / 2;
+                    PolygonOpening opening = new PolygonOpening(polygon.guid, i, openingX, openingY, 3);
+                    db.addPolygonOpeningToPolygon(opening);
+                }
+
+                transaction.Commit();
+            }
+            catch (Exception exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception rollbackException)
+                {
+                    Console.WriteLine("Rollback failed :(");
+                }
+            }
+
+            connection.Close();
+        }
+
+        static void addMalamPolygon(String connectionParams)
+        {
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlTransaction transaction = connection.BeginTransaction();
+
+            try
+            {
+                Polygon polygon = new Polygon(Guid.NewGuid().ToString(), "Malam");
+                List<PolygonPoint> points = new List<PolygonPoint>();
+                points.Add(new PolygonPoint(polygon.guid, 0, 34.850942194461823, 32.098860770959512));
+                points.Add(new PolygonPoint(polygon.guid, 1, 34.85137939453125, 32.098815327220322));
+                points.Add(new PolygonPoint(polygon.guid, 2, 34.851290881633759, 32.098213195541732));
+                points.Add(new PolygonPoint(polygon.guid, 3, 34.850845634937286, 32.098260911781828));
+                points.Add(new PolygonPoint(polygon.guid, 4, 34.85086977481842, 32.098408604747945));
+                points.Add(new PolygonPoint(polygon.guid, 5, 34.851129949092865, 32.098381338372178));
+                points.Add(new PolygonPoint(polygon.guid, 6, 34.8511728644371, 32.098667634911841));
+                points.Add(new PolygonPoint(polygon.guid, 7, 34.850918054580688, 32.098697173392637));
+
+
+                PolygonDB db = new PolygonDB(connection);
+
+                db.addPolygonToDB(polygon);
+                db.addPolygonPoints(polygon, points);
+
+                int[] edgesToAdd = new int[] { 1 };
+
+                foreach (int i in edgesToAdd)
+                {
+                    double openingX = (points[i].x + points[(i + 1) % points.Count()].x) / 2;
+                    double openingY = (points[i].y + points[(i + 1) % points.Count()].y) / 2;
+                    PolygonOpening opening = new PolygonOpening(polygon.guid, i, openingX, openingY, 3);
+                    db.addPolygonOpeningToPolygon(opening);
+                }
+
+                transaction.Commit();
+            }
+            catch (Exception exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception rollbackException)
+                {
+                    Console.WriteLine("Rollback failed :(");
+                }
+            }
+
+            connection.Close();
+        }
+
+        static void addOpeningEscapeRoutes(String connectionParams)
+        {
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlTransaction transaction = connection.BeginTransaction();
+
+            try
+            {
+                PolygonDB db = new PolygonDB(connection);
+                db.addPolygonEscapePoint("Polygon1", 0, new DPoint(34.849061965942383, 32.099617405894811));
+                db.addPolygonEscapePoint("Polygon1", 4, new DPoint(34.84963595867157, 32.098076863289826));
+                db.addPolygonEscapePoint("Polygon1", 5, new DPoint(34.84862744808197, 32.0989584749222));
+                db.addPolygonEscapePoint("Malam", 1, new DPoint(34.851486682891846, 32.098517670169642));
+                transaction.Commit();
+            }
+            catch (Exception exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception rollbackException)
+                {
+                    Console.WriteLine("Rollback failed :(");
+                }
+            }
+
+            connection.Close();
+        }
+
+        static void addBarriers(String connectionParams)
+        {
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlTransaction transaction = connection.BeginTransaction();
+
+            try
+            {
+                BarriersDB db = new BarriersDB(connection);
+                Barrier b1 = new Barrier(Util.CreateGuid(), 34.8514759540558, 32.0996901152282, 0);
+                Barrier b2 = new Barrier(Util.CreateGuid(), 34.8514759540558, 32.1002763321138, 0);
+                Barrier b3 = new Barrier(Util.CreateGuid(), 34.8511058092117, 32.0973406656135, 0);
+                Barrier b4 = new Barrier(Util.CreateGuid(), 34.8504620790482, 32.0961000227717, 0);
+                db.addBarriers(new Barrier[] { b1, b2, b3, b4 });
+                transaction.Commit();
+            }
+            catch (Exception exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception rollbackException)
+                {
+                    Console.WriteLine("Rollback failed :(");
+                }
+            }
+
+            connection.Close();
+        }
+
+        static async Task addWaypointRoutes(String connectionParams)
+        {
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlTransaction transaction = connection.BeginTransaction();
+
+            try
+            {
+                // travel waypoints
+                //DPoint[] travelCoordinates = new DPoint[] { new DPoint(34.8496, 32.0996), new DPoint(34.8506, 32.099), new DPoint(34.8486, 32.099),
+                //                                        new DPoint(34.8503, 32.0981), new DPoint(34.8487, 32.0983),
+                //                                        new DPoint(34.8486, 32.099), new DPoint(34.851, 32.0997),
+                //                                        new DPoint(34.8515, 32.0992), new DPoint(34.8514, 32.0983),
+                //                                        new DPoint(34.8511, 32.0973), new DPoint(34.8501, 32.0977),
+                //                                        new DPoint(34.8487, 32.0982), new DPoint(34.8478, 32.0986)};
+
+                DPoint[] travelCoordinates = new DPoint[] { new DPoint(34.848627448082, 32.0995901398799), new DPoint(34.8495876789093, 32.0996264945646),
+                                                        new DPoint(34.8505747318268, 32.0996492162353),
+                                                        new DPoint(34.850612282753, 32.0982768171897), new DPoint(34.8492550849915, 32.0980950409352),
+                                                        new DPoint(34.8486435413361, 32.098308627997), new DPoint(34.8514652252197, 32.0996855708965),
+                                                        new DPoint(34.851508140564, 32.0986403686134), new DPoint(34.8511004447937, 32.0973452100618),
+                                                        new DPoint(34.8498612642288, 32.0977905648985), new DPoint(34.8485255241394, 32.0982631839831),
+                                                        new DPoint(34.8479408025742, 32.0971543430385), new DPoint(34.8504567146301, 32.096090933751)};
+
+                // read all barrier coordinates
+                BarriersDB barriersDB = new BarriersDB(connection);
+                List<Barrier> barriers = barriersDB.readAllBarriers();
+
+                RouteGenerator generator = new RouteGenerator(connection);
+
+                // generate routes from waypoint to other waypoints
+                for (int i = 0; i < travelCoordinates.Count(); i++)
+                {
+                    for (int j = 0; j < travelCoordinates.Count(); j++)
+                    {
+                        if (i == j) continue;
+                        Route waypointRoute = await generator.generateRouteByShortestPath("WaypointToWaypoint_" + i + "," + j, travelCoordinates[i], travelCoordinates[j]);
+                        generator.saveRouteToDB(waypointRoute);
+                    }
+                }
+
+                // generate routes from waypoint to barriers
+                for (int i = 0; i < travelCoordinates.Count(); i++)
+                {
+                    for (int j = 0; j < barriers.Count(); j++)
+                    {
+                        if (i == j) continue;
+
+                        DPoint barrierCoordinates = new DPoint(barriers[j].x, barriers[j].y);
+                        Route waypointRoute = await generator.generateRouteByShortestPath("WaypointToBarrier_" + i + "," + j, travelCoordinates[i], barrierCoordinates);
+                        generator.saveRouteToDB(waypointRoute);
+                    }
+                }
+
+                transaction.Commit();
+            }
+            catch (Exception exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception rollbackException)
+                {
+                    Console.WriteLine("Rollback failed :(");
+                }
+            }
+
+            connection.Close();
+
+        }
+
+        static void removeWaypointRoutes(String connectionParams)
+        {
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlTransaction transaction = connection.BeginTransaction();
+
+            try
+            {
+                RoutesReader reader = new RoutesReader(connection);
+                RouteGenerator generator = new RouteGenerator(connection);
+
+                // read all waypoint routes
+                List<Route> waypointRoutes = reader.readRoutesStartingWith("Waypoint");
+
+                // delete them
+                generator.deleteRoutes(waypointRoutes);
+
+                transaction.Commit();
+            }
+            catch (Exception exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception rollbackException)
+                {
+                    Console.WriteLine("Rollback failed :(");
+                }
+            }
+
+            connection.Close();
+        }
+
+        static void query(String connectionParams, transactionFunction queryFunction)
+        {
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlTransaction transaction = connection.BeginTransaction();
+
+            try
+            {
+                queryFunction(connectionParams);
+                transaction.Commit();
+            }
+            catch (Exception exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception rollbackException)
+                {
+                    Console.WriteLine("Rollback failed :(");
+                }
+            }
+
+            connection.Close();
+        }
+
+        public delegate void transactionFunction(String connectionParams);
+
+        static void Main(string[] args)
+        {
+            transactionFunction function;
+            String connectionParams = "Server=localhost;Port=5432;User Id=postgres;Password=yy11yy11;Database=TDS;";
+            //addAtoms(connectionParams);
+            //addDubekPolygonOpenings(connectionParams);
+            //addMalamPolygon(connectionParams);
+            //addOpeningEscapeRoutes(connectionParams);
+            //addBarriers(connectionParams);
+            //function += 
+            addWaypointRoutes(connectionParams).Wait();
+            //removeWaypointRoutes(connectionParams);
         }
     }
 }

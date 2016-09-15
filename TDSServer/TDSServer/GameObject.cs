@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using TDSServer.GroundTask;
+//VH
+using TDSServer.GroundTask.StateMashine;
 
 namespace TDSServer
 {
@@ -23,13 +25,29 @@ namespace TDSServer
         public DateTime Ex_clockStartDate;
         private List<CollisionData> collisionData;
         private long totalCollisions, nonFrontalCollisions, frontalCollisions;
-        private bool explosionOccurred;
+        private bool earthquakeOccurred;
+        private bool earthquakeAlreadyEnded;
+        private bool forcesAlreadyArrived;
 		// --------------------------------------------------------------
 
 
         internal ConcurrentDictionary<string, AtomBase> GroundAtomObjectCollection = new ConcurrentDictionary<string, AtomBase>();
         public Dictionary<string, List<clsActivityBase>> m_GroundActivities = new Dictionary<string, List<clsActivityBase>>();
+        //VH
+        public clsPolygon Structure1 = null;
+        public clsPolygon Structure2 = null;
+        public int AtomQtyInStructure = 50;
+        public int AtomQtyOnSidewalks = 100;
 
+        // waypoints on sidewalks
+        public typRoute[,] travelRoutes;
+        // routes from waypoints to barriers routesToBarriers[waypoint,barrier]
+        public typRoute[,] routesToBarriers;
+        // map a point to its info containing what route it belongs to and where
+        public Dictionary<DPoint, PointData> pointDataMap;
+        public Dictionary<DPoint, PointData> routesToBarriersDataMap;
+        // barriers
+        public List<Barrier> barriers;
 
         internal GameObject(GameManager refGameManager)
         {
@@ -40,16 +58,357 @@ namespace TDSServer
             Ex_clockDate = DateTime.Now;
 			// Yinon Douchan: Code for statistics and simulation of explosion
             Ex_clockStartDate = Ex_clockDate;
-            explosionOccurred = false;
+            earthquakeOccurred = false;
+            earthquakeAlreadyEnded = false;
+            forcesAlreadyArrived = false;
 
             // clear collision report history
             if (collisionData == null) collisionData = new List<CollisionData>();
 			// --------------------------------------------------------------
             GroundAtomsInit();
 
+            //VH
+            PolygonsInit();
+            RandomizeAtomsInArea(Structure1, ref m_GameManager.QuadTreeStructure1GroundAtom, AtomQtyInStructure);
+            RandomizeAtomsInArea(Structure2, ref m_GameManager.QuadTreeStructure2GroundAtom, AtomQtyInStructure/2);
+
+
+
             GroundMissionActivitiesInit();
 
+            // YD - add atoms to sidewalk
+            randomizeAtomsOnSidewalks(AtomQtyOnSidewalks);
+            // ---------------------------
+
         }
+        //VH
+        internal void PolygonsInit()
+        {
+            try
+            {
+                List<clsPolygon> structures = new List<clsPolygon>();
+
+                Structure1 = TDS.DAL.PolygonsDB.GetPolygonByName("Polygon1");
+                Structure2 = TDS.DAL.PolygonsDB.GetPolygonByName("Malam");
+
+                // initialize waypoint graphs. TODO - move to non volatile afterwards
+                Structure1.waypointGraph = new PolygonWaypointGraph();
+                PolygonWaypoint waypoint1 = new PolygonWaypoint(1, 34.849099516868591, 32.098940297448664, PolygonWaypoint.WaypointType.CORRIDOR);
+                PolygonWaypoint waypoint2 = new PolygonWaypoint(2, 34.849078059196472, 32.098663090529335, PolygonWaypoint.WaypointType.CORRIDOR);
+                PolygonWaypoint waypoint3 = new PolygonWaypoint(3, 34.849582314491272, 32.098685812439619, PolygonWaypoint.WaypointType.CORRIDOR);
+                PolygonWaypoint waypoint7 = new PolygonWaypoint(7, 34.85012412071228, 32.098722167484318, PolygonWaypoint.WaypointType.CORRIDOR);
+                PolygonWaypoint waypoint8 = new PolygonWaypoint(8, 34.850113391876221, 32.098940297448664, PolygonWaypoint.WaypointType.ROOM);
+                PolygonWaypoint waypoint9 = new PolygonWaypoint(9, 34.85012412071228, 32.098444959902984, PolygonWaypoint.WaypointType.ROOM);
+                PolygonWaypoint waypoint10 = new PolygonWaypoint(10, 34.849571585655212, 32.0989584749222, PolygonWaypoint.WaypointType.ROOM);
+                PolygonWaypoint opening0 = new PolygonWaypoint(4, 34.8490619659424, 32.0996174058948, PolygonWaypoint.WaypointType.OPENING);
+                PolygonWaypoint opening4 = new PolygonWaypoint(5, 34.8496359586716, 32.0980768632898, PolygonWaypoint.WaypointType.OPENING);
+                PolygonWaypoint opening5 = new PolygonWaypoint(6, 34.848627448082, 32.0989584749222, PolygonWaypoint.WaypointType.OPENING);
+                opening0.edgeNum = 0;
+                opening4.edgeNum = 4;
+                opening5.edgeNum = 5;
+                Structure1.waypointGraph.addWaypoint(waypoint1, waypoint2, opening0, opening5, waypoint10);
+                Structure1.waypointGraph.addWaypoint(waypoint2, waypoint1, waypoint3);
+                Structure1.waypointGraph.addWaypoint(waypoint3, waypoint2, opening4);
+                Structure1.waypointGraph.addWaypoint(waypoint7, waypoint3);
+                Structure1.waypointGraph.addWaypoint(waypoint8, waypoint7);
+                Structure1.waypointGraph.addWaypoint(waypoint9, waypoint7);
+                Structure1.waypointGraph.addWaypoint(waypoint10, waypoint3, waypoint1);
+                Structure1.waypointGraph.addWaypoint(opening0, waypoint1);
+                Structure1.waypointGraph.addWaypoint(opening4, waypoint3);
+                Structure1.waypointGraph.addWaypoint(opening5, waypoint1);
+
+                Structure2.waypointGraph = new PolygonWaypointGraph();
+                PolygonWaypoint malamOpening1 = new PolygonWaypoint(1, 34.8513351380825, 32.098514261381, PolygonWaypoint.WaypointType.OPENING);
+                malamOpening1.edgeNum = 1;
+                PolygonWaypoint malamWaypoint2 = new PolygonWaypoint(2, 34.851239919662476, 32.098531303338191, PolygonWaypoint.WaypointType.CORRIDOR);
+                PolygonWaypoint malamWaypoint3 = new PolygonWaypoint(3, 34.851202368736267, 32.098304083596624, PolygonWaypoint.WaypointType.CORRIDOR);
+                PolygonWaypoint malamWaypoint4 = new PolygonWaypoint(4, 34.850950241088867, 32.098322261196749, PolygonWaypoint.WaypointType.CORRIDOR);
+                PolygonWaypoint malamWaypoint5 = new PolygonWaypoint(5, 34.851266741752625, 32.098753978136557, PolygonWaypoint.WaypointType.CORRIDOR);
+                PolygonWaypoint malamWaypoint6 = new PolygonWaypoint(6, 34.850998520851135, 32.098772155647154, PolygonWaypoint.WaypointType.CORRIDOR);
+                Structure2.waypointGraph.addWaypoint(malamOpening1, malamWaypoint2);
+                Structure2.waypointGraph.addWaypoint(malamWaypoint2, malamOpening1, malamWaypoint3, malamWaypoint5);
+                Structure2.waypointGraph.addWaypoint(malamWaypoint3, malamWaypoint2, malamWaypoint4);
+                Structure2.waypointGraph.addWaypoint(malamWaypoint4, malamWaypoint3);
+                Structure2.waypointGraph.addWaypoint(malamWaypoint5, malamWaypoint2, malamWaypoint6);
+                Structure2.waypointGraph.addWaypoint(malamWaypoint6, malamWaypoint5);
+
+                structures.Add(Structure1);
+                structures.Add(Structure2);
+
+                foreach (clsPolygon structure in structures)
+                {
+                    foreach (var pnt in structure.Points)
+                    {
+                        if (pnt.x > structure.maxX) structure.maxX = pnt.x;
+                        if (pnt.x < structure.minX) structure.minX = pnt.x;
+                        if (pnt.y > structure.maxY) structure.maxY = pnt.y;
+                        if (pnt.y < structure.minY) structure.minY = pnt.y;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+         
+          
+        }
+
+        private clsGroundAtom[] RandomizeAtomsInArea(clsPolygon Structure, ref QuadTree<clsGroundAtom> quadTree, int Qty)
+        {
+            double minX = double.MaxValue;
+            double maxX = 0;
+            double minY = double.MaxValue;
+            double maxY = 0;
+            IEnumerable<TerrainService.shPoint> PolPnts = Structure.Points;
+            clsGroundAtom[] Atoms = new clsGroundAtom[Qty];
+
+
+            System.Random Rnd = new Random();
+       
+            foreach(var pnt in PolPnts)
+            {
+                if (pnt.x > maxX) maxX = pnt.x;
+                if (pnt.x < minX) minX = pnt.x;
+                if (pnt.y > maxY) maxY = pnt.y;
+                if (pnt.y < minY) minY = pnt.y;
+            }
+
+
+            DAreaRect rect = new DAreaRect(minX, minY, maxX, maxY);
+            quadTree = new QuadTree<clsGroundAtom>(rect, 0, null);
+
+
+            for (int i = 0; i < Qty; i++)
+            {
+                double vRnd = Rnd.NextDouble();
+                double randX = minX + (maxX - minX) * vRnd;
+                vRnd = Rnd.NextDouble();
+                double randY = minY + (maxY - minY) * vRnd;
+
+                // choose a random waypoint between rooms and corridors
+                List<PolygonWaypoint> roomsAndCorridors = new List<PolygonWaypoint>();
+                roomsAndCorridors.AddRange(Structure.waypointGraph.rooms);
+                roomsAndCorridors.AddRange(Structure.waypointGraph.corridors);
+
+                int randomWaypointIndex = Rnd.Next(roomsAndCorridors.Count());
+                PolygonWaypoint waypoint = roomsAndCorridors[randomWaypointIndex];
+
+                TerrainService.shPoint[] Pnts=PolPnts.ToArray();
+
+                while (true)
+                {
+                    bool inPolygon =TerrainService.GeometryHelper.GeometryMath.isPointInPolygon(randX, randY,ref  Pnts);
+                    if (inPolygon == true)
+                    {
+                        clsGroundAtom GroundAtom = new clsGroundAtom(this);
+                        GroundAtom = new clsGroundAtom(this);
+                        GroundAtom.GUID = Util.CretaeGuid();
+                        GroundAtom.MyName = GroundAtom.GUID;
+						// YD: generate position by waypoints and not randomly
+                        //GroundAtom.curr_X = randX;
+                        //GroundAtom.curr_Y = randY;
+                        //GroundAtom.currPosition = new TerrainService.Vector(randX, randY, 0);
+                        GroundAtom.curr_X = waypoint.x;
+                        GroundAtom.curr_Y = waypoint.y;
+                        GroundAtom.currPosition = new TerrainService.Vector(waypoint.x, waypoint.y, 0);
+                        GroundAtom.currentStructureWaypoint = waypoint;
+                        GroundAtom.currentAzimuth = Util.Azimuth2Points(GroundAtom.curr_X, GroundAtom.curr_Y,
+                                            GroundAtom.currentStructureWaypoint.x, GroundAtom.currentStructureWaypoint.y);
+						
+						// set speed randomly and not fixed
+                        GroundAtom.currentSpeed = Rnd.Next(3, 8);
+
+                        Atoms[i] = GroundAtom;
+
+                        GroundAtomObjectCollection.TryAdd(GroundAtom.GUID, GroundAtom);
+
+                        GroundAtom.ChangeState(new REGULAR_MOVEMENT_IN_STRUCTURE_STATE(Structure, GroundAtom.currentStructureWaypoint));
+                        m_GameManager.QuadTreeStructure1GroundAtom.PositionUpdate(GroundAtom);
+
+                        break;
+                    }
+                    else
+                    {
+                        vRnd = Rnd.NextDouble();
+                        randX = minX + (maxX - minX) * vRnd;
+                        vRnd = Rnd.NextDouble();
+                        randY = minY + (maxY - minY) * vRnd;
+                    }
+                }
+            }
+
+
+            return Atoms;
+        }
+
+        // YD: Generate atoms on sidewalk randomly
+        public DPoint[] getRegularMovementCoordinates()
+        {
+            DPoint[] travelCoordinates = new DPoint[] { new DPoint(34.848627448082, 32.0995901398799), new DPoint(34.8495876789093, 32.0996264945646),
+                                                        new DPoint(34.8505747318268, 32.0996492162353),
+                                                        new DPoint(34.850612282753, 32.0982768171897), new DPoint(34.8492550849915, 32.0980950409352),
+                                                        new DPoint(34.8486435413361, 32.098308627997), new DPoint(34.8514652252197, 32.0996855708965),
+                                                        new DPoint(34.851508140564, 32.0986403686134), new DPoint(34.8511004447937, 32.0973452100618),
+                                                        new DPoint(34.8498612642288, 32.0977905648985), new DPoint(34.8485255241394, 32.0982631839831),
+                                                        new DPoint(34.8479408025742, 32.0971543430385), new DPoint(34.8504567146301, 32.096090933751)};
+            return travelCoordinates;
+        }
+
+        public List<Barrier> getPoliceBarrierCoordinates()
+        {
+            return barriers;
+        }
+
+        public PointData lookForClosestRegularRoute(clsGroundAtom refGroundAtom)
+        {
+            double minDistance = Double.PositiveInfinity;
+            DPoint minPoint = null;
+
+            foreach (DPoint point in pointDataMap.Keys)
+            {
+                double distanceFromAtom = TerrainService.MathEngine.CalcDistance(refGroundAtom.curr_X, refGroundAtom.curr_Y, point.x, point.y);
+                if (distanceFromAtom < minDistance)
+                {
+                    minDistance = distanceFromAtom;
+                    minPoint = point;
+                }
+            }
+
+            return pointDataMap[minPoint];
+        }
+
+        public PointData lookForClosestRouteToBarrier(clsGroundAtom refGroundAtom, Barrier barrier)
+        {
+            double minDistance = Double.PositiveInfinity;
+            DPoint minPoint = null;
+
+            foreach (DPoint point in routesToBarriersDataMap.Keys)
+            {
+                double distanceFromAtom = TerrainService.MathEngine.CalcDistance(refGroundAtom.curr_X, refGroundAtom.curr_Y, point.x, point.y);
+                int barrierIndex = routesToBarriersDataMap[point].routeIndex2;
+                if (distanceFromAtom < minDistance && barriers[barrierIndex] == barrier)
+                {
+                    minDistance = distanceFromAtom;
+                    minPoint = point;
+                }
+            }
+
+            return routesToBarriersDataMap[minPoint];
+        }
+
+        public void preloadData()
+        {
+            // preload barriers
+            barriers = TDS.DAL.BarriersDB.getAllBarriers();
+
+            DPoint[] coordinates = getRegularMovementCoordinates();
+
+            // get all waypoints to waypoins and waypoins to barriers
+            IEnumerable<Route> waypointToWaypointRoutes = TDS.DAL.RoutesDB.getRoutesWithNameStartingWith("WaypointToWaypoint");
+            IEnumerable<Route> waypointToBarrierRoutes = TDS.DAL.RoutesDB.getRoutesWithNameStartingWith("WaypointToBarrier");
+
+            travelRoutes = new typRoute[coordinates.Count(), coordinates.Count()];
+            routesToBarriers = new typRoute[coordinates.Count(), barriers.Count()];
+            pointDataMap = new Dictionary<DPoint, PointData>();
+            routesToBarriersDataMap = new Dictionary<DPoint, PointData>();
+
+
+            // store waypoints to waypoints in arrays. Route names are in format WaypointToWaypoint_i_j where i,j are integers
+            foreach (Route route in waypointToWaypointRoutes)
+            {
+                typRoute typRoute = RouteUtils.createTypRoute(route.Points.ToList(), route.RouteName);
+                int index1 = Convert.ToInt32(route.RouteName.Split('_')[1].Split(',')[0]);
+                int index2 = Convert.ToInt32(route.RouteName.Split('_')[1].Split(',')[1]);
+
+                travelRoutes[index1, index2] = typRoute;
+
+                for (int i = 0; i < route.Points.Count() - 1; i++)
+                {
+                    DPoint point = route.Points.ElementAt(i);
+                    PointData data = new PointData();
+                    data.legNum = i + 1;
+                    data.routeIndex1 = index1;
+                    data.routeIndex2 = index2;
+                    data.route = typRoute;
+                    pointDataMap.Add(point, data);
+                }
+            }
+
+            // store waypoints to barriers in arrays. Route names are in format WaypointToBarrier_i_j where i,j are integers
+            foreach (Route route in waypointToBarrierRoutes)
+            {
+                typRoute typRoute = RouteUtils.createTypRoute(route.Points.ToList(), route.RouteName);
+                int index1 = Convert.ToInt32(route.RouteName.Split('_')[1].Split(',')[0]);
+                int index2 = Convert.ToInt32(route.RouteName.Split('_')[1].Split(',')[1]);
+
+                routesToBarriers[index1, index2] = typRoute;
+
+                for (int i = 0; i < route.Points.Count() - 1; i++)
+                {
+                    DPoint point = route.Points.ElementAt(i);
+                    PointData data = new PointData();
+                    data.legNum = i + 1;
+                    data.routeIndex1 = index1;
+                    data.routeIndex2 = index2;
+                    data.route = routesToBarriers[index1, index2];
+                    routesToBarriersDataMap.Add(point, data);
+                }
+            }
+        }
+
+        private clsGroundAtom[] randomizeAtomsOnSidewalks(int Qty)
+        {
+            DPoint[] travelCoordinates = getRegularMovementCoordinates();
+
+            clsGroundAtom[] atoms = new clsGroundAtom[Qty];
+
+            for (int i = 0; i < atoms.Count(); i++)
+            {
+                atoms[i] = new clsGroundAtom(this);
+
+                // init ID related fields
+                atoms[i].MyName = "Sidewalk" + i;
+                atoms[i].GUID = Util.CretaeGuid();
+
+                // init starting point
+                int startLocationIndex = Util.random.Next(travelCoordinates.Count());
+
+                int minutes = Util.random.Next(1);
+                int seconds = Util.random.Next(1, 60);
+
+                int endLocationIndex = Util.random.Next(travelCoordinates.Count() - 1);
+                // make sure start and end location indices are not the same
+                if (startLocationIndex == endLocationIndex) endLocationIndex++;
+                Route route = RouteUtils.typRouteToRoute(travelRoutes[startLocationIndex, endLocationIndex]);
+
+                // init activity
+                clsActivityMovement activity = RouteUtils.createActivityAndStart(atoms[i], Util.random.Next(3, 11), route);
+                activity.TimeFrom = DateTime.Now.AddMinutes(minutes).AddSeconds(seconds);
+                List<clsActivityBase> activities = new List<clsActivityBase>();
+                activities.Add(activity);
+                m_GroundActivities.Add(atoms[i].GUID, activities);
+                atoms[i].currentStartWaypoint = startLocationIndex;
+                atoms[i].currentEndWaypoint = endLocationIndex;
+                atoms[i].curr_X = travelRoutes[startLocationIndex, endLocationIndex].arr_legs.ElementAt(0).FromLongn;
+                atoms[i].curr_Y = travelRoutes[startLocationIndex, endLocationIndex].arr_legs.ElementAt(0).FromLatn;
+                atoms[i].X_Route = atoms[i].curr_X;
+                atoms[i].Y_Route = atoms[i].curr_Y;
+                atoms[i].currPosition = new TerrainService.Vector(atoms[i].curr_X, atoms[i].curr_Y, 0);
+
+                // add atom to collection
+                GroundAtomObjectCollection.TryAdd(atoms[i].GUID, atoms[i]);
+                // update atom position
+                m_GameManager.QuadTreeGroundAtom.PositionUpdate(atoms[i]);
+
+                // set state
+                atoms[i].ChangeState(new ADMINISTRATIVE_STATE());
+            }
+
+            return atoms;
+        }
+
+
         private void GroundMissionActivitiesInit()
         {
               m_GroundActivities = new Dictionary<string, List<clsActivityBase>>();
@@ -115,13 +474,24 @@ namespace TDSServer
                 GroundAtomObjectCollection.TryAdd(GroundAtom.GUID, GroundAtom);
 
                 m_GameManager.QuadTreeGroundAtom.PositionUpdate(GroundAtom);
+                //VH
+                GroundAtom.ChangeState(new ADMINISTRATIVE_STATE());
             }
         }
 
-		// Yinon Douchan: Code for statistics and simulation of explosion
-        public bool emergencyOccurred()
+        public bool earthquakeStarted()
         {
             return (Ex_clockDate - Ex_clockStartDate).Minutes > 2;
+        }
+
+        public bool earthquakeEnded()
+        {
+            return (Ex_clockDate - Ex_clockStartDate).Minutes > 4;
+        }
+
+        public bool forcesHaveArrived()
+        {
+            return (Ex_clockDate - Ex_clockStartDate).Minutes > 8;
         }
 
         public DPoint getExplosionLocation()
@@ -134,7 +504,7 @@ namespace TDSServer
             return 10;
         }
 
-        private void inflictDamageOnGroundAtoms(DPoint location, double radius)
+        private void inflictDamageOnGroundAtomsInExplosion(DPoint location, double radius)
         {
             List<clsGroundAtom> atomsToDamage = m_GameManager.QuadTreeGroundAtom.SearchEntities(location.x, location.y, radius, isPrecise: true);
             double certainDeathRadius = 0.2*radius;
@@ -184,6 +554,43 @@ namespace TDSServer
 
                 // if he didn't die or was not injured or incapacitated - he's one lucky bastard.
             }
+        }
+
+        private void inflictDamageOnGroundAtomsInEarthquake()
+        {
+            foreach (KeyValuePair<String, AtomBase> atomKV in GroundAtomObjectCollection) {
+                clsGroundAtom groundAtom = (clsGroundAtom)atomKV.Value;
+                double deathProb = Util.random.NextDouble();
+
+                // death with a certain probability
+                if (deathProb < 0.05)
+                {
+                    groundAtom.healthStatus.isDead = true;
+                    groundAtom.gotDead();
+                    continue;
+                }
+
+                double incapacitanceProb = Util.random.NextDouble();
+                // incapacitance with a certain probability
+                if (incapacitanceProb < 0.05)
+                {
+                    groundAtom.healthStatus.isIncapacitated = true;
+                    groundAtom.healthStatus.isInjured = true;
+                    groundAtom.gotIncapacitated();
+                    continue;
+                }
+
+                double injuryProb = Util.random.NextDouble();
+                if (injuryProb < 0.05)
+                {
+                    double severity = Util.random.NextDouble();
+                    groundAtom.healthStatus.isInjured = true;
+                    groundAtom.healthStatus.injurySeverity = severity;
+                    groundAtom.currentSpeed *= (1 - groundAtom.healthStatus.injurySeverity);
+                    continue;
+                }
+            }
+            
         }
 
         public void writeCollisionReportAndClearData()
@@ -508,11 +915,6 @@ namespace TDSServer
                       collisionData.Add(new CollisionData(Ex_clockDate, totalCollisions, nonFrontalCollisions, frontalCollisions));
                   }
 
-                  if (!explosionOccurred && emergencyOccurred())
-                  {
-                      explosionOccurred = true;
-                      inflictDamageOnGroundAtoms(getExplosionLocation(), getExplosionRadius());
-                  }
 				  // ---------------------------------------------------------------
 
 
@@ -543,6 +945,8 @@ namespace TDSServer
 
                       GroundExecuteStateTask = new Task(() =>
                       {
+                          manageEvents();
+
                           foreach (KeyValuePair<string, AtomBase> keyVal in GroundAtomObjectCollection)
                           {
                               clsGroundAtom refGroundAtom = keyVal.Value as clsGroundAtom;
@@ -573,6 +977,46 @@ namespace TDSServer
 
              }
         }
+
+        private void manageEvents()
+        {
+            if (!earthquakeOccurred && earthquakeStarted())
+            {
+                Console.WriteLine("STARTED");
+                earthquakeOccurred = true;
+                //inflictDamageOnGroundAtomsInExplosion(getExplosionLocation(), getExplosionRadius());
+                inflictDamageOnGroundAtomsInEarthquake();
+
+                // notify all atoms on earthquake
+                foreach (KeyValuePair<String, AtomBase> atomKV in GroundAtomObjectCollection)
+                {
+                    clsGroundAtom groundAtom = (clsGroundAtom)atomKV.Value;
+                    groundAtom.earthquakeStarted();
+                }
+            }
+
+            if (!forcesAlreadyArrived && forcesHaveArrived())
+            {
+                forcesAlreadyArrived = true;
+                Console.WriteLine("FORCES");
+                foreach (KeyValuePair<String, AtomBase> atomKV in GroundAtomObjectCollection)
+                {
+                    clsGroundAtom groundAtom = (clsGroundAtom)atomKV.Value;
+                    groundAtom.forcesHaveArrived();
+                }
+            }
+
+            if (!earthquakeAlreadyEnded && earthquakeEnded())
+            {
+                earthquakeAlreadyEnded = true;
+                Console.WriteLine("ENDED");
+                foreach (KeyValuePair<String, AtomBase> atomKV in GroundAtomObjectCollection)
+                {
+                    clsGroundAtom groundAtom = (clsGroundAtom)atomKV.Value;
+                    groundAtom.earthquakeEnded();
+                }
+            }
+        }
         internal structTransportCommonProperty[] PrepareGroundCommonProperty()
         {
             List<structTransportCommonProperty> TransportCommonProperty = new List<structTransportCommonProperty>(GroundAtomObjectCollection.Count);
@@ -598,6 +1042,13 @@ namespace TDSServer
                
             }
             return TransportCommonProperty.ToArray<structTransportCommonProperty>();
+        }
+
+        public QuadTree<clsGroundAtom> getQuadTreeByStructure(clsPolygon structure)
+        {
+            if (structure == Structure1) return m_GameManager.QuadTreeStructure1GroundAtom;
+            else if (structure == Structure2) return m_GameManager.QuadTreeStructure2GroundAtom;
+            else return null;
         }
     }
 }

@@ -72,6 +72,10 @@ namespace TDSServer
         public int CountryId;   
         public double curr_X;     
         public double curr_Y;
+        //VH
+        public TerrainService.Vector currPosition;
+		// YD: current waypoint in structure
+        public PolygonWaypoint currentStructureWaypoint;
 
     }
     public enum enumPlatformId
@@ -260,6 +264,8 @@ namespace TDSServer
             y = y_;
         }
     }
+
+
     public class Route
     {
         public string RouteName;
@@ -338,8 +344,35 @@ namespace TDSServer
     {
 
     }
+
+	// YD: data about a point: to what route it belongs and in what leg
+    public class PointData
+    {
+        public typRoute route;
+        public int legNum;
+        public int routeIndex1;
+        public int routeIndex2;
+    }
+	// ---
     
     public class clsGeneralDataType
     {       
+    }
+	
+	// TD: representation of a battier - contains a guid, x/y coordinates and an angle
+    public class Barrier
+    {
+        public String guid;
+        public double x;
+        public double y;
+        public double angle;
+
+        public Barrier(String guid, double x, double y, double angle)
+        {
+            this.guid = guid;
+            this.x = x;
+            this.y = y;
+            this.angle = angle;
+        }
     }
 }
