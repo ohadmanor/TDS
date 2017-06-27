@@ -71,6 +71,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AtomGenerator.cs" />
+    <Compile Include="CultureDB.cs" />
     <Compile Include="DataTypes.cs" />
     <Compile Include="BarriersDB.cs" />
     <Compile Include="PolygonDB.cs" />

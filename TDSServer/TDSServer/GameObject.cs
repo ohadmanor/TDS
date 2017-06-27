@@ -30,6 +30,19 @@ namespace TDSServer
         private bool forcesAlreadyArrived;
 		// --------------------------------------------------------------
 
+        // simulation stage:
+		// STAGE_1 - normal movement before the earthquake
+		// STAGE_2 - during the earthquake
+		// STAGE_3 - immediately after the earthquake
+		// STAGE_4 - forces taking over the area
+        public enum SimulationStage { STAGE_1, STAGE_2, STAGE_3, STAGE_4 };
+
+        private SimulationStage m_simulationStage;
+        public SimulationStage simulationStage
+        {
+            get { return m_simulationStage; }
+        }
+
 
         internal ConcurrentDictionary<string, AtomBase> GroundAtomObjectCollection = new ConcurrentDictionary<string, AtomBase>();
         public Dictionary<string, List<clsActivityBase>> m_GroundActivities = new Dictionary<string, List<clsActivityBase>>();
@@ -61,6 +74,7 @@ namespace TDSServer
             earthquakeOccurred = false;
             earthquakeAlreadyEnded = false;
             forcesAlreadyArrived = false;
+            m_simulationStage = SimulationStage.STAGE_1;
 
             // clear collision report history
             if (collisionData == null) collisionData = new List<CollisionData>();
@@ -204,7 +218,7 @@ namespace TDSServer
                         clsGroundAtom GroundAtom = new clsGroundAtom(this);
                         GroundAtom = new clsGroundAtom(this);
                         GroundAtom.GUID = Util.CretaeGuid();
-                        GroundAtom.MyName = GroundAtom.GUID;
+                        GroundAtom.MyName = Structure.PolygonName + "_" + i;
 						// YD: generate position by waypoints and not randomly
                         //GroundAtom.curr_X = randX;
                         //GroundAtom.curr_Y = randY;
@@ -215,13 +229,28 @@ namespace TDSServer
                         GroundAtom.currentStructureWaypoint = waypoint;
                         GroundAtom.currentAzimuth = Util.Azimuth2Points(GroundAtom.curr_X, GroundAtom.curr_Y,
                                             GroundAtom.currentStructureWaypoint.x, GroundAtom.currentStructureWaypoint.y);
-						
-						// set speed randomly and not fixed
-                        GroundAtom.currentSpeed = Rnd.Next(3, 8);
 
+                        List<CultureData> culturalData = TDS.DAL.CulturesDB.getCultureDataByCountry("israel");
+                        CultureGenderBiasData culturalGenderBiasData = TDS.DAL.CulturesDB.getCultureGenderBiasByCountry("israel");
+
+						// set speed randomly and not fixed
                         Atoms[i] = GroundAtom;
 
                         GroundAtomObjectCollection.TryAdd(GroundAtom.GUID, GroundAtom);
+
+                        // set atom data
+                        CultureData atomCulture = culturalData.ElementAt(Util.random.Next(2));
+                        GroundAtom.age = atomCulture.age;
+                        GroundAtom.gender = atomCulture.gender;
+                        GroundAtom.proxemics = new Proxemics(atomCulture.personalSpace, atomCulture.socialSpace, atomCulture.publicSpace);
+                        GroundAtom.currentSpeed = atomCulture.speed;
+                        GroundAtom.baselineSpeed = GroundAtom.currentSpeed;
+                        GroundAtom.genderBiasFactor = culturalGenderBiasData.bias;
+
+                        // collision avoidance in normative conditions:
+                        // between two individuals who are not in a group it is done when the lower bound of the social space is passed
+                        // between two individuals in a group it is done when the personal space is violated
+                        GroundAtom.collisionRadius = 2*clsGroundAtom.RADIUS + atomCulture.socialSpace;
 
                         GroundAtom.ChangeState(new REGULAR_MOVEMENT_IN_STRUCTURE_STATE(Structure, GroundAtom.currentStructureWaypoint));
                         m_GameManager.QuadTreeStructure1GroundAtom.PositionUpdate(GroundAtom);
@@ -245,6 +274,7 @@ namespace TDSServer
         // YD: Generate atoms on sidewalk randomly
         public DPoint[] getRegularMovementCoordinates()
         {
+            // travel waypoints
             DPoint[] travelCoordinates = new DPoint[] { new DPoint(34.848627448082, 32.0995901398799), new DPoint(34.8495876789093, 32.0996264945646),
                                                         new DPoint(34.8505747318268, 32.0996492162353),
                                                         new DPoint(34.850612282753, 32.0982768171897), new DPoint(34.8492550849915, 32.0980950409352),
@@ -382,8 +412,24 @@ namespace TDSServer
                 if (startLocationIndex == endLocationIndex) endLocationIndex++;
                 Route route = RouteUtils.typRouteToRoute(travelRoutes[startLocationIndex, endLocationIndex]);
 
+                // set atom data
+                List<CultureData> culturalData = TDS.DAL.CulturesDB.getCultureDataByCountry("israel");
+                CultureGenderBiasData culturalGenderBiasData = TDS.DAL.CulturesDB.getCultureGenderBiasByCountry("israel");
+                CultureData atomCulture = culturalData.ElementAt(Util.random.Next(2));
+                atoms[i].age = atomCulture.age;
+                atoms[i].gender = atomCulture.gender;
+                atoms[i].proxemics = new Proxemics(atomCulture.personalSpace, atomCulture.socialSpace, atomCulture.publicSpace);
+                atoms[i].genderBiasFactor = culturalGenderBiasData.bias;
+                atoms[i].currentSpeed = atomCulture.speed;
+
+                // collision avoidance in normative conditions:
+                // between two individuals who are not in a group it is done when the lower bound of the social space is violated
+                // between two individuals in a group it is done when the personal space is violated
+                atoms[i].collisionRadius = 2*clsGroundAtom.RADIUS + atomCulture.socialSpace;
+
                 // init activity
-                clsActivityMovement activity = RouteUtils.createActivityAndStart(atoms[i], Util.random.Next(3, 11), route);
+                clsActivityMovement activity = RouteUtils.createActivityAndStart(atoms[i], atomCulture.speed, route);
+                atoms[i].baselineSpeed = atomCulture.speed;
                 activity.TimeFrom = DateTime.Now.AddMinutes(minutes).AddSeconds(seconds);
                 List<clsActivityBase> activities = new List<clsActivityBase>();
                 activities.Add(activity);
@@ -468,8 +514,7 @@ namespace TDSServer
 
                 GroundAtom.curr_X = atom.Location.x;
                 GroundAtom.curr_Y = atom.Location.y;
-
-
+                GroundAtom.reScheduleEvaluation();
 
                 GroundAtomObjectCollection.TryAdd(GroundAtom.GUID, GroundAtom);
 
@@ -982,8 +1027,8 @@ namespace TDSServer
         {
             if (!earthquakeOccurred && earthquakeStarted())
             {
-                Console.WriteLine("STARTED");
                 earthquakeOccurred = true;
+                m_simulationStage = SimulationStage.STAGE_2;
                 //inflictDamageOnGroundAtomsInExplosion(getExplosionLocation(), getExplosionRadius());
                 inflictDamageOnGroundAtomsInEarthquake();
 
@@ -998,7 +1043,7 @@ namespace TDSServer
             if (!forcesAlreadyArrived && forcesHaveArrived())
             {
                 forcesAlreadyArrived = true;
-                Console.WriteLine("FORCES");
+                m_simulationStage = SimulationStage.STAGE_4;
                 foreach (KeyValuePair<String, AtomBase> atomKV in GroundAtomObjectCollection)
                 {
                     clsGroundAtom groundAtom = (clsGroundAtom)atomKV.Value;
@@ -1009,7 +1054,7 @@ namespace TDSServer
             if (!earthquakeAlreadyEnded && earthquakeEnded())
             {
                 earthquakeAlreadyEnded = true;
-                Console.WriteLine("ENDED");
+                m_simulationStage = SimulationStage.STAGE_3;
                 foreach (KeyValuePair<String, AtomBase> atomKV in GroundAtomObjectCollection)
                 {
                     clsGroundAtom groundAtom = (clsGroundAtom)atomKV.Value;

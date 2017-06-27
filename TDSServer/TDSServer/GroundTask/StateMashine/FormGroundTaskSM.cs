@@ -37,12 +37,13 @@ namespace TDSServer.GroundTask.StateMashine
         public bool InitialActivityExecuted = false;
 
         public BasicStateFormGroundTaskOrder()
-        { }
+        {
+        }
         public virtual void Enter(clsGroundAtom refGroundAtom)
         {
 			// YD: register default event listeners
             refGroundAtom.earthquakeStartedEventHandler += earthquakeStartedDefaultEventHandler;
-            refGroundAtom.earthquakeStartedEventHandler += earthquakeEndedDefaultEventHandler;
+            refGroundAtom.earthquakeEndedEventHandler += earthquakeEndedDefaultEventHandler;
             refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedDefaultEventHandler;
 			// ---
         }
@@ -57,10 +58,19 @@ namespace TDSServer.GroundTask.StateMashine
 		// YD: default event handler for when forces arrive
         protected void forcesHaveArrivedDefaultEventHandler(object sender, EventArgs e)
         {
-			// default action is simply going to the nearest police barrier
             clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
-            clsActivityMovement barrierMovement = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+
+            refGroundAtom.reEvaluationEventHandler += reevaluationAfterForcesHaveArrivedEventHandler;
+			
+			// no need to hurry, everything is under control by the police, military, etc.
+            refGroundAtom.currentSpeed = refGroundAtom.baselineSpeed;
+
             refGroundAtom.resetMovementData();
+
+            if (moveToSocialComparisonStateIfShould(refGroundAtom)) return;
+
+			// default action is simply going to the nearest police barrier
+            clsActivityMovement barrierMovement = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
             refGroundAtom.ChangeState(new GO_TO_POLICE_BARRIER_STATE(barrierMovement));
             return;
         }
@@ -70,11 +80,23 @@ namespace TDSServer.GroundTask.StateMashine
         {
 			// default action is holding on to an immobile object, be it the ground, a fence, a car etc.
             clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+			
+			// there's an earthquake. better move fast before something falls on me
+            double panicSpeedMultiplier = (Util.random.NextDouble() + 1.5);
+            refGroundAtom.currentSpeed = panicSpeedMultiplier * refGroundAtom.baselineSpeed;
+			
             refGroundAtom.knowsAboutEarthquake = true;
 
-            clsActivityMovement activity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+            // there are no proxemics in non-normative conditions
+            refGroundAtom.collisionRadius = 2*clsGroundAtom.RADIUS;
+
+            refGroundAtom.reEvaluationEventHandler += reevaluationAfterEarthquakeStartedEventHandler;
+
             refGroundAtom.lastRoutePoint.x = refGroundAtom.X_Route;
             refGroundAtom.lastRoutePoint.y = refGroundAtom.Y_Route;
+            if (moveToSocialComparisonStateIfShould(refGroundAtom)) return;
+
+            clsActivityMovement activity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
             refGroundAtom.ChangeState(new HOLD_ON_TO_OBJECT_STATE(activity));
             return;
         }
@@ -82,11 +104,17 @@ namespace TDSServer.GroundTask.StateMashine
 		// YD: default event handler for when an earthquake ends when not in structure
         protected void earthquakeEndedDefaultEventHandler(object sender, EventArgs e)
         {
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+
+            // set reevaluation decision probabilities
+            refGroundAtom.reEvaluationEventHandler += reevaluationAfterEarthquakeEndedEventHandler;
+
 			// default action is probabilisticly choosing from curiosity, helping others or simply returning to regular activity
 			
-            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
             List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 50, isPrecise: true);
             List<clsGroundAtom> casualtiesNearby = new List<clsGroundAtom>();
+
+            if (moveToSocialComparisonStateIfShould(refGroundAtom)) return;
 			
             // should the atom be curious?
             foreach (clsGroundAtom atom in atomsNearby)
@@ -123,8 +151,123 @@ namespace TDSServer.GroundTask.StateMashine
 				// go back to regular activity
                 getBackToRegularMovement(refGroundAtom);
             }
+			
+			// there's nothing to hurry - earthquake has ended
+            refGroundAtom.currentSpeed = refGroundAtom.baselineSpeed;
         }
-		
+
+        protected void reevaluationAfterEarthquakeStartedEventHandler(object sender, EventArgs e)
+        {
+            // nothing to do here for now
+        }
+
+        protected void reevaluationAfterEarthquakeEndedEventHandler(object sender, EventArgs e)
+        {
+            // default action is probabilisticly choosing from curiosity, helping others or simply returning to regular activity
+
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+            List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 50, isPrecise: true);
+            List<clsGroundAtom> casualtiesNearby = new List<clsGroundAtom>();
+
+            // if in social comparison state and not stuck stay in social comparison - things seem to be moving
+            if (refGroundAtom.currentState.GetType() == typeof(SOCIAL_COMPARISON_STATE))
+            {
+                SOCIAL_COMPARISON_STATE sc = (SOCIAL_COMPARISON_STATE)refGroundAtom.currentState;
+                bool stuck = refGroundAtom.currentSpeed <= (float)sc.baselineSpeed / 10.0;
+                if (!stuck) return;
+                else
+                {
+                     // stuck in social comparison - first return to baseline speed
+                    refGroundAtom.currentSpeed = sc.baselineSpeed;
+                }
+            }
+            else
+            {
+                // not in social comparison state - also keep going on
+                refGroundAtom.currentSpeed = refGroundAtom.baselineSpeed;
+                return;
+            }
+
+            // stuck in social comparison - get out of social comparison
+
+            // should the atom be curious?
+            foreach (clsGroundAtom atom in atomsNearby)
+            {
+                if (atom.healthStatus.isIncapacitated || atom.healthStatus.isDead)
+                {
+                    casualtiesNearby.Add(atom);
+                }
+            }
+
+            if (casualtiesNearby.Count() > 0)
+            {
+                //double comparisonProbability = 0.7;
+
+                //if (Util.random.NextDouble() <= comparisonProbability)
+                //{
+                //    if (moveToSocialComparisonStateIfCan(refGroundAtom)) return;
+                //}
+
+                double randomAction = Util.random.NextDouble();
+                int randomCasualty = Util.random.Next(casualtiesNearby.Count());
+                clsActivityMovement curiousityActivity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                if (randomAction < 0.3)
+                {
+                    // get curious - not in every day you see an injured man laying on the ground
+                    if (refGroundAtom.currentState.GetType() != typeof(CURIOSITY_MOVEMENT_STATE))
+                        refGroundAtom.ChangeState(new CURIOSITY_MOVEMENT_STATE(curiousityActivity, casualtiesNearby[randomCasualty]));
+                }
+                else if (randomAction >= 0.3 && randomAction < 0.8)
+                {
+                    // try to help an injured or dead man
+                    if (refGroundAtom.currentState.GetType() != typeof(HELP_OTHER_STATE))
+                        refGroundAtom.ChangeState(new HELP_OTHER_STATE(curiousityActivity, casualtiesNearby[randomCasualty]));
+                }
+                else
+                {
+                    // go back to regular activity if not already in it
+                    if (refGroundAtom.currentState.GetType() != typeof(REGULAR_MOVEMENT_STATE)) getBackToRegularMovement(refGroundAtom);
+                }
+            }
+            else
+            {
+                //double comparisonProbability = 0.7;
+
+                //if (Util.random.NextDouble() <= comparisonProbability)
+                //{
+                //    if (moveToSocialComparisonStateIfCan(refGroundAtom)) return;
+                //}
+
+                // go back to regular activity if not already in it
+                if (refGroundAtom.currentState.GetType() != typeof(REGULAR_MOVEMENT_STATE)) getBackToRegularMovement(refGroundAtom);
+            }
+        }
+
+        protected void reevaluationAfterForcesHaveArrivedEventHandler(object sender, EventArgs e)
+        {
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+
+            refGroundAtom.currentSpeed = refGroundAtom.baselineSpeed;
+
+            // if in social comparison state and not stuck stay in social comparison - things seems to be moving
+            if (refGroundAtom.currentState.GetType() == typeof(SOCIAL_COMPARISON_STATE))
+            {
+                SOCIAL_COMPARISON_STATE sc = (SOCIAL_COMPARISON_STATE)refGroundAtom.currentState;
+                bool stuck = refGroundAtom.currentSpeed <= (float)sc.baselineSpeed / 10.0;
+                if (stuck)
+                {
+                    clsActivityMovement barrierMovement = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                    refGroundAtom.ChangeState(new GO_TO_POLICE_BARRIER_STATE(barrierMovement));
+                }
+            }
+
+            if (refGroundAtom.currentState.GetType() != typeof(GO_TO_POLICE_BARRIER_STATE))
+            {
+                clsActivityMovement barrierMovement = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                refGroundAtom.ChangeState(new GO_TO_POLICE_BARRIER_STATE(barrierMovement));
+                return;
+            }
+        }
 		// default event handler for incapacitation
         protected void incapacitationDefaultEventHandler(object sender, EventArgs e)
         {
@@ -155,7 +298,71 @@ namespace TDSServer.GroundTask.StateMashine
             refGroundAtom.currentStartWaypoint = closestPoint.routeIndex1;
             refGroundAtom.currentEndWaypoint = closestPoint.routeIndex2;
             refGroundAtom.resetMovementData();
-            refGroundAtom.ChangeState(new GET_ON_SIDEWALK(backToNormal, refGroundAtom.lastRoutePoint, route));
+
+            DPoint pointOnSidewalk;
+            if (refGroundAtom.lastRoutePoint.x == 0 && refGroundAtom.lastRoutePoint.y == 0)
+            {
+				// go to the closest sidewalk
+                pointOnSidewalk = new DPoint(route.Points.ElementAt(0).x, route.Points.ElementAt(0).y);
+                refGroundAtom.lastRoutePoint.x = pointOnSidewalk.x;
+                refGroundAtom.lastRoutePoint.y = pointOnSidewalk.y;
+            }
+            else
+            {
+				// continue from where you were before the earthquake started
+                pointOnSidewalk = refGroundAtom.lastRoutePoint;
+            }
+
+            refGroundAtom.ChangeState(new GET_ON_SIDEWALK(backToNormal, pointOnSidewalk, route));
+        }
+
+        // move to social comparison state if can and should. Return true if can and should and move, else return false
+        public bool moveToSocialComparisonStateIfShould(clsGroundAtom refGroundAtom)
+        {
+            double socialComparisonProbability = Util.random.NextDouble();
+
+            // draw probabilistically whether to compare or not
+            if (socialComparisonProbability <= refGroundAtom.getSocialComparisonProbability())
+            {
+                // do social comparison
+                clsGroundAtom mostSimilar = SocialComparison.findMostSimilarByDistanceAndAzimuth(refGroundAtom);
+
+                // check if there is someone similar to me
+                if (mostSimilar != null)
+                {
+                    clsActivityMovement moveToMostSimilar = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                    refGroundAtom.resetMovementData();
+                    refGroundAtom.ChangeState(new SOCIAL_COMPARISON_STATE(moveToMostSimilar, mostSimilar));
+                    return true;
+                }
+
+                // if couldn't find someone similar in vicinity do not compare
+            }
+
+            return false;
+        }
+
+        // move to social comparison state if can.
+        public bool moveToSocialComparisonStateIfCan(clsGroundAtom refGroundAtom)
+        {
+            double socialComparisonProbability = Util.random.NextDouble();
+
+            // draw probabilistically whether to compare or not
+            // do social comparison
+            clsGroundAtom mostSimilar = SocialComparison.findMostSimilarByDistanceAndAzimuth(refGroundAtom);
+
+            // check if there is someone similar to me
+            if (mostSimilar != null)
+            {
+                clsActivityMovement moveToMostSimilar = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                refGroundAtom.resetMovementData();
+                refGroundAtom.ChangeState(new SOCIAL_COMPARISON_STATE(moveToMostSimilar, mostSimilar));
+                return true;
+            }
+
+            // if couldn't find someone similar in vicinity do not compare
+
+            return false;
         }
     }
     public class ADMINISTRATIVE_STATE : BasicStateFormGroundTaskOrder
@@ -292,7 +499,7 @@ namespace TDSServer.GroundTask.StateMashine
                 Y_Distination = nextRoute_Y;
             }
 
-            List<clsGroundAtom> colAtoms = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(X_Distination, Y_Distination, 2 * clsGroundAtom.RADIUS, isPrecise: true);
+            List<clsGroundAtom> colAtoms = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(X_Distination, Y_Distination, refGroundAtom.collisionRadius, isPrecise: true);
 
         //   List<clsGroundAtom> colAtoms = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(X_Distination, refGroundAtom.curr_Y, clsGroundAtom.OFFSET_IN_COLLISION, isPrecise: true);
             foreach (clsGroundAtom atom in colAtoms)
@@ -350,7 +557,7 @@ namespace TDSServer.GroundTask.StateMashine
                else if (isLeft && isRight)
                {
                    // decide whether to turn right or left based on social comparison to most similar
-                   clsGroundAtom mostSimilar = SocialComparison.findMostSimilar(refGroundAtom);
+                   clsGroundAtom mostSimilar = SocialComparison.findMostSimilarByDistanceAndAzimuth(refGroundAtom);
                    if (mostSimilar != null)
                    {
                        SocialComparison.setOffsetTowardsMostSimilar(refGroundAtom, mostSimilar);
@@ -448,8 +655,51 @@ namespace TDSServer.GroundTask.StateMashine
         }
     }
 
-      
+    // Compare behavior to the most similar atom
+    public class SOCIAL_COMPARISON_STATE : MOVEMENT_STATE
+    {
+        clsActivityMovement refActivityMovement;
+        clsGroundAtom mostSimilarAtom;
+        private double m_baselineSpeed; // speed before comparison
+        public double baselineSpeed
+        {
+            get { return m_baselineSpeed; }
+            set { m_baselineSpeed = value; }
+        }
 
+        public SOCIAL_COMPARISON_STATE(clsActivityMovement refActivityMovement, clsGroundAtom mostSimilarAtom)
+            : base(refActivityMovement)
+        {
+            this.refActivityMovement = refActivityMovement;
+            this.mostSimilarAtom = mostSimilarAtom;
+        }
+
+        public override void Enter(clsGroundAtom refGroundAtom)
+        {
+            refGroundAtom.currentRoute = RouteUtils.planStraightLineRoute(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y),
+                                                    new DPoint(mostSimilarAtom.curr_X, mostSimilarAtom.curr_Y), "RouteToMostSimilar");
+            m_baselineSpeed = refGroundAtom.currentSpeed;
+        }
+
+        public override void Execute(clsGroundAtom refGroundAtom)
+        {
+            // update route so that the destination will be the most similar atom
+            refGroundAtom.currentRoute = RouteUtils.planStraightLineRoute(new DPoint(refGroundAtom.curr_X, refGroundAtom.curr_Y),
+                                                    new DPoint(mostSimilarAtom.curr_X, mostSimilarAtom.curr_Y), "RouteToMostSimilar");
+
+            // minimize differences
+            SocialComparison.correctBehaviorToMostSimilar(refGroundAtom, mostSimilarAtom, m_baselineSpeed);
+
+            // move
+            base.Execute(refGroundAtom);
+        }
+
+        public override void Exit(clsGroundAtom refGroundAtom)
+        {
+            refGroundAtom.currentSpeed = m_baselineSpeed;
+            base.Exit(refGroundAtom);
+        }
+    }
 
     class FormGroundTaskSM
     {
