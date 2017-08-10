@@ -437,4 +437,21 @@ namespace TDSServer
             this.bias = bias;
         }
     }
+
+    public abstract class Trigger
+    {
+        public enum Type { DEAD_OR_INCAPACITATED };
+        public Type type;
+    }
+
+    public class DeadOrIncapacitatedTrigger : Trigger
+    {
+        public String atomName;
+
+        public DeadOrIncapacitatedTrigger(String atomName)
+        {
+            this.atomName = atomName;
+            type = Trigger.Type.DEAD_OR_INCAPACITATED;
+        }
+    }
 }

@@ -109,48 +109,12 @@ namespace TDSServer.GroundTask.StateMashine
             // set reevaluation decision probabilities
             refGroundAtom.reEvaluationEventHandler += reevaluationAfterEarthquakeEndedEventHandler;
 
-			// default action is probabilisticly choosing from curiosity, helping others or simply returning to regular activity
-			
-            List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 50, isPrecise: true);
-            List<clsGroundAtom> casualtiesNearby = new List<clsGroundAtom>();
+            // decide what to do either individually or by social comparison
 
             if (moveToSocialComparisonStateIfShould(refGroundAtom)) return;
-			
-            // should the atom be curious?
-            foreach (clsGroundAtom atom in atomsNearby)
-            {
-                if (atom.healthStatus.isIncapacitated || atom.healthStatus.isDead)
-                {
-                    casualtiesNearby.Add(atom);
-                }
-            }
 
-            if (casualtiesNearby.Count() > 0)
-            {
-                double randomAction = Util.random.NextDouble();
-                int randomCasualty = Util.random.Next(casualtiesNearby.Count());
-                clsActivityMovement curiousityActivity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
-                if (randomAction < 0.3)
-                {
-					// get curious - not in every day you see an injured man laying on the ground
-                    refGroundAtom.ChangeState(new CURIOSITY_MOVEMENT_STATE(curiousityActivity, casualtiesNearby[randomCasualty]));
-                }
-                else if (randomAction >= 0.3 && randomAction < 0.8)
-                {
-					// try to help an injured or dead man
-                    refGroundAtom.ChangeState(new HELP_OTHER_STATE(curiousityActivity, casualtiesNearby[randomCasualty]));
-                }
-                else
-                {
-					// go back to regular activity
-                    getBackToRegularMovement(refGroundAtom);
-                }
-            }
-            else
-            {
-				// go back to regular activity
-                getBackToRegularMovement(refGroundAtom);
-            }
+			// go back to regular activity
+            getBackToRegularMovement(refGroundAtom);
 			
 			// there's nothing to hurry - earthquake has ended
             refGroundAtom.currentSpeed = refGroundAtom.baselineSpeed;
@@ -163,11 +127,8 @@ namespace TDSServer.GroundTask.StateMashine
 
         protected void reevaluationAfterEarthquakeEndedEventHandler(object sender, EventArgs e)
         {
-            // default action is probabilisticly choosing from curiosity, helping others or simply returning to regular activity
-
             clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
-            List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 50, isPrecise: true);
-            List<clsGroundAtom> casualtiesNearby = new List<clsGroundAtom>();
+            List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 20, isPrecise: true);
 
             // if in social comparison state and not stuck stay in social comparison - things seem to be moving
             if (refGroundAtom.currentState.GetType() == typeof(SOCIAL_COMPARISON_STATE))
@@ -179,67 +140,77 @@ namespace TDSServer.GroundTask.StateMashine
                 {
                      // stuck in social comparison - first return to baseline speed
                     refGroundAtom.currentSpeed = sc.baselineSpeed;
+                    getBackToRegularMovement(refGroundAtom);
                 }
             }
             else
             {
-                // not in social comparison state - also keep going on
                 refGroundAtom.currentSpeed = refGroundAtom.baselineSpeed;
-                return;
-            }
 
-            // stuck in social comparison - get out of social comparison
-
-            // should the atom be curious?
-            foreach (clsGroundAtom atom in atomsNearby)
-            {
-                if (atom.healthStatus.isIncapacitated || atom.healthStatus.isDead)
+                // check for casualties nearby
+                List<clsGroundAtom> casualtiesNearby = new List<clsGroundAtom>();
+                foreach (clsGroundAtom atom in atomsNearby)
                 {
-                    casualtiesNearby.Add(atom);
+                    if (atom.healthStatus.isIncapacitated || atom.healthStatus.isDead)
+                    {
+                        casualtiesNearby.Add(atom);
+                    }
                 }
-            }
 
-            if (casualtiesNearby.Count() > 0)
-            {
-                //double comparisonProbability = 0.7;
-
-                //if (Util.random.NextDouble() <= comparisonProbability)
-                //{
-                //    if (moveToSocialComparisonStateIfCan(refGroundAtom)) return;
-                //}
-
-                double randomAction = Util.random.NextDouble();
-                int randomCasualty = Util.random.Next(casualtiesNearby.Count());
-                clsActivityMovement curiousityActivity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
-                if (randomAction < 0.3)
+                // check if already handled the specific trigger
+                foreach (clsGroundAtom casualty in casualtiesNearby)
                 {
-                    // get curious - not in every day you see an injured man laying on the ground
-                    if (refGroundAtom.currentState.GetType() != typeof(CURIOSITY_MOVEMENT_STATE))
-                        refGroundAtom.ChangeState(new CURIOSITY_MOVEMENT_STATE(curiousityActivity, casualtiesNearby[randomCasualty]));
-                }
-                else if (randomAction >= 0.3 && randomAction < 0.8)
-                {
-                    // try to help an injured or dead man
-                    if (refGroundAtom.currentState.GetType() != typeof(HELP_OTHER_STATE))
-                        refGroundAtom.ChangeState(new HELP_OTHER_STATE(curiousityActivity, casualtiesNearby[randomCasualty]));
-                }
-                else
-                {
-                    // go back to regular activity if not already in it
-                    if (refGroundAtom.currentState.GetType() != typeof(REGULAR_MOVEMENT_STATE)) getBackToRegularMovement(refGroundAtom);
-                }
-            }
-            else
-            {
-                //double comparisonProbability = 0.7;
+                    bool casualtyHandled = false;
 
-                //if (Util.random.NextDouble() <= comparisonProbability)
-                //{
-                //    if (moveToSocialComparisonStateIfCan(refGroundAtom)) return;
-                //}
+                    foreach (Trigger trigger in refGroundAtom.triggers)
+                    {
+                        if (trigger.type != Trigger.Type.DEAD_OR_INCAPACITATED) continue;
 
-                // go back to regular activity if not already in it
-                if (refGroundAtom.currentState.GetType() != typeof(REGULAR_MOVEMENT_STATE)) getBackToRegularMovement(refGroundAtom);
+                        DeadOrIncapacitatedTrigger doiTrigger = (DeadOrIncapacitatedTrigger)trigger;
+                        if (doiTrigger.atomName == casualty.MyName)
+                        {
+                            casualtyHandled = true;
+                            break;
+                        }
+                    }
+
+                    if (!casualtyHandled)
+                    {
+
+                        // decide whether to help casualty or not
+                        double helpOrNot = Util.random.NextDouble();
+
+                        if (helpOrNot < 0.2)
+                        {
+                            // decide individually to help
+                            clsActivityMovement helpActivity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                            refGroundAtom.ChangeState(new HELP_OTHER_STATE(helpActivity, casualty));
+                            refGroundAtom.triggers.Add(new DeadOrIncapacitatedTrigger(casualty.MyName));
+                            return;
+                        }
+                        else if (helpOrNot >= 0.2 && helpOrNot < 0.3)
+                        {
+                            // decide individually just to look
+                            clsActivityMovement curiosityActivity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                            refGroundAtom.ChangeState(new CURIOSITY_MOVEMENT_STATE(curiosityActivity, casualty));
+                            refGroundAtom.triggers.Add(new DeadOrIncapacitatedTrigger(casualty.MyName));
+                            return;
+                        }
+                        else if (helpOrNot >= 0.3 && helpOrNot < 0.5)
+                        {
+                            // decide by socially comparing behavior
+                            if (moveToSocialComparisonStateIfCan(refGroundAtom))
+                            {
+                                refGroundAtom.triggers.Add(new DeadOrIncapacitatedTrigger(casualty.MyName));
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            refGroundAtom.triggers.Add(new DeadOrIncapacitatedTrigger(casualty.MyName));
+                        }
+                    }
+                }
             }
         }
 
@@ -299,8 +270,11 @@ namespace TDSServer.GroundTask.StateMashine
             refGroundAtom.currentEndWaypoint = closestPoint.routeIndex2;
             refGroundAtom.resetMovementData();
 
+            double distanceFromLastRoutePoint = TerrainService.MathEngine.CalcDistance(refGroundAtom.lastRoutePoint.x, refGroundAtom.lastRoutePoint.y,
+                                                                                       refGroundAtom.curr_X, refGroundAtom.curr_Y);
+
             DPoint pointOnSidewalk;
-            if (refGroundAtom.lastRoutePoint.x == 0 && refGroundAtom.lastRoutePoint.y == 0)
+            if ((refGroundAtom.lastRoutePoint.x == 0 && refGroundAtom.lastRoutePoint.y == 0) || (distanceFromLastRoutePoint > 5))
             {
 				// go to the closest sidewalk
                 pointOnSidewalk = new DPoint(route.Points.ElementAt(0).x, route.Points.ElementAt(0).y);

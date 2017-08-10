@@ -144,6 +144,10 @@ namespace TDSServer.GroundTask
         public DPoint lastRoutePoint;
 
         public List<CollisionTime> Collisions = new List<CollisionTime>();
+
+        // behavioral triggers
+        public List<Trigger> triggers;
+
         //private Route m_Route;
         //public void SetRoute(Route route) 
         //{           
@@ -173,6 +177,8 @@ namespace TDSServer.GroundTask
             m_healthStatus = new HealthStatus();
             lastRoutePoint = new DPoint();
             clearAllEventSubscriptions();
+
+            triggers = new List<Trigger>();
 			// -------------------------------------------------------
             //VH ChangeState(new ADMINISTRATIVE_STATE());
         }

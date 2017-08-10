@@ -341,7 +341,7 @@ namespace TDSServer.GroundTask.StateMashine
 
         protected void actAfterEarthquakeEnded(clsGroundAtom refGroundAtom)
         {
-            List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 50, isPrecise: true);
+            List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 20, isPrecise: true);
             List<clsGroundAtom> casualtiesNearby = new List<clsGroundAtom>();
 
             if (moveToSocialComparisonStateIfShould(refGroundAtom)) return;

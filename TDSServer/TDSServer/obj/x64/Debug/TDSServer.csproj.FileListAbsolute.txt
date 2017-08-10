@@ -100,8 +100,6 @@ C:\dev\TDS_polygon\TDSServer\TDSServer\obj\x64\Debug\TDSServer.Properties.Resour
 C:\dev\TDS_polygon\TDSServer\TDSServer\obj\x64\Debug\TDSServer.csproj.GenerateResource.Cache
 C:\dev\TDS_polygon\TDSServer\TDSServer\obj\x64\Debug\TDSServer.csprojResolveAssemblyReference.cache
 C:\dev\TDS\TDSServer\TDSServer\bin\x64\Debug\TDSServer.exe.config
-C:\dev\TDS\TDSServer\TDSServer\obj\x64\Debug\TDSServer.exe
-C:\dev\TDS\TDSServer\TDSServer\obj\x64\Debug\TDSServer.pdb
 C:\dev\TDS\TDSServer\TDSServer\bin\x64\Debug\TDSServer.exe
 C:\dev\TDS\TDSServer\TDSServer\bin\x64\Debug\TDSServer.pdb
 C:\dev\TDS\TDSServer\TDSServer\bin\x64\Debug\Microsoft.AspNet.SignalR.Core.dll
@@ -132,3 +130,5 @@ C:\dev\TDS\TDSServer\TDSServer\obj\x64\Debug\TDSServer.csprojResolveAssemblyRefe
 C:\dev\TDS\TDSServer\TDSServer\obj\x64\Debug\TDSServer.Form1.resources
 C:\dev\TDS\TDSServer\TDSServer\obj\x64\Debug\TDSServer.Properties.Resources.resources
 C:\dev\TDS\TDSServer\TDSServer\obj\x64\Debug\TDSServer.csproj.GenerateResource.Cache
+C:\dev\TDS\TDSServer\TDSServer\obj\x64\Debug\TDSServer.exe
+C:\dev\TDS\TDSServer\TDSServer\obj\x64\Debug\TDSServer.pdb
