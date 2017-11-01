@@ -328,7 +328,7 @@ namespace TDSServer
         public DateTime TimeTo;
         public TimeSpan StartActivityOffset;
         public TimeSpan DurationActivity;
-        public int Speed;
+        public double Speed;
         public Route RouteActivity;
         public DPoint ReferencePoint;
 
@@ -359,7 +359,7 @@ namespace TDSServer
     {       
     }
 	
-	// TD: representation of a battier - contains a guid, x/y coordinates and an angle
+	// YD: representation of a battier - contains a guid, x/y coordinates and an angle
     public class Barrier
     {
         public String guid;
@@ -373,6 +373,85 @@ namespace TDSServer
             this.x = x;
             this.y = y;
             this.angle = angle;
+        }
+    }
+
+    // YD: representation of a behavior of an entity of a specific culture, gender and age in a specific setting
+    class CultureData
+    {
+        public String guid;
+
+        // age, gender and country
+        public int age;
+        public String gender;
+        public String country;
+
+        // to what formation is this culture data relevant to? individual? groups?
+        public String formationType;
+
+        // if it is in a group, how many males and females are in that group?
+        public int formationMales;
+        public int formationFemales;
+
+        // proxemics
+        public double personalSpace;
+        public double socialSpace;
+        public double publicSpace;
+
+        // collision avoidance side - probability to move left in case of a collision
+        public double avoidanceSideLeftProb;
+        public double speed;
+        public double genderBiasFactor;
+
+        public CultureData(String guid, int age, String gender, String country, String formationType, int formationMales, int formationFemales,
+                            double personalSpace, double socialSpace, double publicSpace, double avoidanceSideLeftProb, double speed)
+        {
+            this.guid = guid;
+            this.age = age;
+            this.gender = gender;
+            this.country = country;
+            this.formationType = formationType;
+            this.formationMales = formationMales;
+            this.formationFemales = formationFemales;
+            this.personalSpace = personalSpace;
+            this.socialSpace = socialSpace;
+            this.publicSpace = publicSpace;
+            this.avoidanceSideLeftProb = avoidanceSideLeftProb;
+            this.speed = speed;
+        }
+    }
+
+    // some cultures have gender bias. This may cause agents to depend more on agents of the same gender
+    class CultureGenderBiasData
+    {
+        public String guid;
+        public String country;
+
+        // the bias factor - the higher it is, the more the agent tends to compare itself to agents of the same gender
+        public double bias;
+
+        public CultureGenderBiasData(String guid, String country, double bias)
+        {
+            this.guid = guid;
+            this.country = country;
+            this.bias = bias;
+        }
+    }
+
+    public abstract class Trigger
+    {
+        public enum Type { DEAD_OR_INCAPACITATED };
+        public Type type;
+    }
+
+    public class DeadOrIncapacitatedTrigger : Trigger
+    {
+        public String atomName;
+
+        public DeadOrIncapacitatedTrigger(String atomName)
+        {
+            this.atomName = atomName;
+            type = Trigger.Type.DEAD_OR_INCAPACITATED;
         }
     }
 }

@@ -143,6 +143,7 @@
     <Compile Include="Startup.cs" />
     <Compile Include="TDS.DAL\ActivityDB.cs" />
     <Compile Include="TDS.DAL\AtomsDB.cs" />
+    <Compile Include="TDS.DAL\CulturesDB.cs" />
     <Compile Include="TDS.DAL\BarriersDB.cs" />
     <Compile Include="TDS.DAL\PolygonsDB.cs" />
     <Compile Include="TDS.DAL\RoutesDB.cs" />

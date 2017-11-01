@@ -65,7 +65,9 @@ namespace TDSServer.GroundTask.StateMashine
 
                 refGroundAtom.currentEndWaypoint = randomWaypoint;
                 refGroundAtom.currentLeg = 1;
-                refGroundAtom.ChangeState(new REGULAR_MOVEMENT_STATE(refActivityMovement));
+                REGULAR_MOVEMENT_STATE regularMovement = (REGULAR_MOVEMENT_STATE)refGroundAtom.currentState;
+                // re-enter the state
+                regularMovement.Enter(refGroundAtom);
                 return;
             }
 
@@ -131,6 +133,7 @@ namespace TDSServer.GroundTask.StateMashine
                 refGroundAtom.currentEndWaypoint = randomWaypoint;
                 refGroundAtom.currentLeg = 1;
                 refGroundAtom.ChangeState(new REGULAR_MOVEMENT_STATE(refActivityMovement));
+                refGroundAtom.reEvaluationEventHandler += reevaluationAfterEarthquakeEndedEventHandler;
                 return;
             }
 
@@ -320,41 +323,7 @@ namespace TDSServer.GroundTask.StateMashine
 
                 if (refGroundAtom.m_GameObject.earthquakeEnded())
                 {
-                    List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 50, isPrecise: true);
-                    List<clsGroundAtom> casualtiesNearby = new List<clsGroundAtom>();
-                    // should the atom be curious?
-                    foreach (clsGroundAtom atom in atomsNearby)
-                    {
-                        if (atom.healthStatus.isIncapacitated || atom.healthStatus.isDead)
-                        {
-                            casualtiesNearby.Add(atom);
-                        }
-                    }
-
-                    // decide whether to flock towards casualties
-                    if (casualtiesNearby.Count() > 0)
-                    {
-                        double randomAction = Util.random.NextDouble();
-                        int randomCasualty = Util.random.Next(casualtiesNearby.Count());
-                        clsActivityMovement curiousityActivity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
-
-                        if (randomAction < 0.3)
-                        {
-                            refGroundAtom.ChangeState(new CURIOSITY_MOVEMENT_STATE(curiousityActivity, casualtiesNearby[randomCasualty]));
-                        }
-                        else if (randomAction >= 0.3 && randomAction < 0.8)
-                        {
-                            refGroundAtom.ChangeState(new HELP_OTHER_STATE(curiousityActivity, casualtiesNearby[randomCasualty]));
-                        }
-                        else
-                        {
-                            goToRegularMovement(refGroundAtom);
-                        }
-                    }
-                    else
-                    {
-                        goToRegularMovement(refGroundAtom);
-                    }
+                    actAfterEarthquakeEnded(refGroundAtom);
                 }
 
                 return;
@@ -363,11 +332,20 @@ namespace TDSServer.GroundTask.StateMashine
             base.Execute(refGroundAtom);
         }
 
+        // earthquake ended and an I'm outside the building. What now?
         protected void earthquakeEndedExitingEventHandler(object sender, EventArgs e)
         {
             clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
-            List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 50, isPrecise: true);
+            actAfterEarthquakeEnded(refGroundAtom);
+        }
+
+        protected void actAfterEarthquakeEnded(clsGroundAtom refGroundAtom)
+        {
+            List<clsGroundAtom> atomsNearby = refGroundAtom.m_GameObject.m_GameManager.QuadTreeGroundAtom.SearchEntities(refGroundAtom.curr_X, refGroundAtom.curr_Y, 20, isPrecise: true);
             List<clsGroundAtom> casualtiesNearby = new List<clsGroundAtom>();
+
+            if (moveToSocialComparisonStateIfShould(refGroundAtom)) return;
+
             // should the atom be curious?
             foreach (clsGroundAtom atom in atomsNearby)
             {
@@ -394,16 +372,16 @@ namespace TDSServer.GroundTask.StateMashine
                 }
                 else
                 {
-                    goToRegularMovement(refGroundAtom);
+                    goToRegularMovementAfterExitingStructure(refGroundAtom);
                 }
             }
             else
             {
-                goToRegularMovement(refGroundAtom);
+                goToRegularMovementAfterExitingStructure(refGroundAtom);
             }
         }
 
-        private void goToRegularMovement(clsGroundAtom refGroundAtom)
+        private void goToRegularMovementAfterExitingStructure(clsGroundAtom refGroundAtom)
         {
             clsActivityMovement backToNormal = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
             clsPolygonOpeningEscapePoint escapePoint = Structure.EscapePoints[exitEdgeNumber];
@@ -417,6 +395,7 @@ namespace TDSServer.GroundTask.StateMashine
             refGroundAtom.currentStartWaypoint = closestPoint.routeIndex1;
             refGroundAtom.currentEndWaypoint = closestPoint.routeIndex2;
             refGroundAtom.resetMovementData();
+            refGroundAtom.currentSpeed = refGroundAtom.baselineSpeed;
             refGroundAtom.ChangeState(new GET_ON_SIDEWALK(backToNormal, new DPoint(escapePoint.x, escapePoint.y), route));
         }
 

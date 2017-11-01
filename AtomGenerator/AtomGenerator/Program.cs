@@ -54,8 +54,8 @@ namespace DBUtils
                 RouteGenerator routeGenerator = new RouteGenerator(connection);
 
                 generator.deleteAllAtomsAndActivities();
-                Route source1 = routesReader.readRouteByName("Escape3");
-                Route source2 = routesReader.readRouteByName("Escape3_reversed");
+                //Route source1 = routesReader.readRouteByName("Escape3");
+                //Route source2 = routesReader.readRouteByName("Escape3_reversed");
                 //Route source3 = routesReader.readRouteByName("Source3");
                 //Route cornerRoute = routesReader.readRouteByName("Corner");
 
@@ -335,6 +335,100 @@ namespace DBUtils
             {
                 try
                 {
+
+                    transaction.Rollback();
+                }
+                catch (Exception rollbackException)
+                {
+                    Console.WriteLine("Rollback failed :(");
+                }
+            }
+
+            connection.Close();
+        }
+
+        static void addCulturalData(String connectionParams)
+        {
+            CultureData dataMaleIraq = new CultureData(Guid.NewGuid().ToString(), 40, "male", "iraq", "individual", 0, 0, 0.438, 1.478, 5.478, 0.62, 4.554);
+            CultureData dataFemaleIraq = new CultureData(Guid.NewGuid().ToString(), 40, "female", "iraq", "individual", 0, 0, 0.183, 1.223, 5.223, 0.62, 3.978);
+
+            CultureData dataMaleCanada = new CultureData(Guid.NewGuid().ToString(), 40, "male", "canada", "individual", 0, 0, 0.658, 1.698, 5.698, 0.63, 5.004);
+            CultureData dataFemaleCanada = new CultureData(Guid.NewGuid().ToString(), 40, "female", "canada", "individual", 0, 0, 0.7, 1.74, 5.74, 0.63, 4.968);
+
+            CultureData dataMaleIsrael = new CultureData(Guid.NewGuid().ToString(), 40, "male", "israel", "individual", 0, 0, 0.665, 1.705, 5.705, 0.41, 4.806);
+            CultureData dataFemaleIsrael = new CultureData(Guid.NewGuid().ToString(), 40, "female", "israel", "individual", 0, 0, 0.503, 1.543, 5.543, 0.41, 4.482);
+
+            CultureData dataMaleEngland = new CultureData(Guid.NewGuid().ToString(), 40, "male", "england", "individual", 0, 0, 0.495, 1.535, 5.535, 0.77, 5.166);
+            CultureData dataFemaleEngland = new CultureData(Guid.NewGuid().ToString(), 40, "female", "england", "individual", 0, 0, 0.52, 1.56, 5.56, 0.77, 4.23);
+
+            CultureData dataMaleFrance = new CultureData(Guid.NewGuid().ToString(), 40, "male", "france", "individual", 0, 0, 0.575, 1.615, 5.615, 0.45, 4.914);
+            CultureData dataFemaleFrance = new CultureData(Guid.NewGuid().ToString(), 40, "female", "france", "individual", 0, 0, 0.405, 1.445, 5.445, 0.45, 4.68);
+
+            CultureGenderBiasData iraqBias = new CultureGenderBiasData(Guid.NewGuid().ToString(), "iraq", 0);
+            CultureGenderBiasData canadaBias = new CultureGenderBiasData(Guid.NewGuid().ToString(), "canada", 0);
+            CultureGenderBiasData israelBias = new CultureGenderBiasData(Guid.NewGuid().ToString(), "israel", 0);
+            CultureGenderBiasData englandBias = new CultureGenderBiasData(Guid.NewGuid().ToString(), "england", 0);
+            CultureGenderBiasData franceBias = new CultureGenderBiasData(Guid.NewGuid().ToString(), "france", 0);
+
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlTransaction transaction = connection.BeginTransaction();
+
+            try
+            {
+                CultureDB cultureDB = new CultureDB(connection);
+                cultureDB.addCultureData(dataMaleIraq);
+                cultureDB.addCultureData(dataFemaleIraq);
+                cultureDB.addCultureData(dataMaleCanada);
+                cultureDB.addCultureData(dataFemaleCanada);
+                cultureDB.addCultureData(dataMaleIsrael);
+                cultureDB.addCultureData(dataFemaleIsrael);
+                cultureDB.addCultureData(dataMaleEngland);
+                cultureDB.addCultureData(dataFemaleEngland);
+                cultureDB.addCultureData(dataMaleFrance);
+                cultureDB.addCultureData(dataFemaleFrance);
+                cultureDB.addCultureGenderBiasData(iraqBias);
+                cultureDB.addCultureGenderBiasData(canadaBias);
+                cultureDB.addCultureGenderBiasData(israelBias);
+                cultureDB.addCultureGenderBiasData(englandBias);
+                cultureDB.addCultureGenderBiasData(franceBias);
+                transaction.Commit();
+                Console.WriteLine("addCulturalData: Transaction successful");
+            }
+            catch (Exception exception)
+            {
+                try
+                {
+                    transaction.Rollback();
+                }
+                catch (Exception rollbackException)
+                {
+                    Console.WriteLine("Rollback failed :(");
+                }
+            }
+
+            connection.Close();
+
+        }
+
+        static void removeAllCulturalData(String connectionParams)
+        {
+            NpgsqlConnection connection = new NpgsqlConnection(connectionParams);
+            connection.Open();
+            NpgsqlTransaction transaction = connection.BeginTransaction();
+
+            try
+            {
+                CultureDB cultureDB = new CultureDB(connection);
+                cultureDB.removeAllCultureData();
+                cultureDB.removeAllCultureGenderBias();
+                transaction.Commit();
+                Console.WriteLine("removeCulturalData: Transaction successful");
+            }
+            catch (Exception exception)
+            {
+                try
+                {
                     transaction.Rollback();
                 }
                 catch (Exception rollbackException)
@@ -384,8 +478,10 @@ namespace DBUtils
             //addOpeningEscapeRoutes(connectionParams);
             //addBarriers(connectionParams);
             //function += 
-            addWaypointRoutes(connectionParams).Wait();
             //removeWaypointRoutes(connectionParams);
+            //addWaypointRoutes(connectionParams).Wait();
+            removeAllCulturalData(connectionParams);
+            addCulturalData(connectionParams);
         }
     }
 }

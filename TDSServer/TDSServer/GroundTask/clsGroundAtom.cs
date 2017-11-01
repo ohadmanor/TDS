@@ -16,7 +16,9 @@ namespace TDSServer.GroundTask
     // dying or becoming incapacitated
     public delegate void IncapacitationEventHandler(object sender, EventArgs e);
     public delegate void DeathEventHandler(object sender, EventArgs e);
-	// ---
+    // reevaluation of the atom's status
+    public delegate void ReevaluationEventHandler(object sender, EventArgs e);
+    // ---
     public class clsGroundAtom : AtomBase, IQuadTree
     {
         [NonSerialized]
@@ -27,9 +29,12 @@ namespace TDSServer.GroundTask
         public bool isCollision;
 
         public const double MAX_OFFSET = 5;
-        // human radius
-        public const double RADIUS = 0.5;
+        // human radius - around 30 cm
+        public const double RADIUS = 0.3;
         public const double OFFSET_IN_COLLISION = 1;
+
+        // time interval between re-evaluation
+        public const double SECONDS_BETWEEN_REEVALUATION = 5;
 
         public double X_Distination;
         public double Y_Distination;
@@ -40,8 +45,49 @@ namespace TDSServer.GroundTask
         public double Offset_Distance = 0;
 
         private int m_currentLeg;
-		// Yinon Douchan: Health status and knowledge of emergency
+		
+		// age and gender
+        private int m_age;
+        public int age
+        {
+            get { return m_age; }
+            set { m_age = value; }
+        }
+
+        private String m_gender;
+        public String gender
+        {
+            get { return m_gender; }
+            set { m_gender = value; }
+        }
+
+		// Yinon Douchan: Health status, proxemics and knowledge of emergency
 		public Boolean knowsAboutEarthquake;
+		
+		// proxemics
+        private Proxemics m_proxemics;
+        public Proxemics proxemics
+        {
+            get { return m_proxemics; }
+            set { m_proxemics = value; }
+        }
+
+        // how much an agent is biased towards its own gender
+        private double m_genderBiasFactor;
+        public double genderBiasFactor
+        {
+            get { return m_genderBiasFactor; }
+            set { m_genderBiasFactor = value; }
+        }
+
+        // maximal radius to avoid collisions, based on proxemics and stage
+        private double m_collisionRadius;
+        public double collisionRadius
+        {
+            get { return m_collisionRadius; }
+            set { m_collisionRadius = value; }
+        }
+
         private HealthStatus m_healthStatus;
         public HealthStatus healthStatus
         {
@@ -60,6 +106,15 @@ namespace TDSServer.GroundTask
             get { return m_Speed; }
             set { m_Speed = value; }
         }
+
+        // default speed of this entity
+        private double m_baselineSpeed;
+        public double baselineSpeed
+        {
+            get { return m_baselineSpeed; }
+            set { m_baselineSpeed = value; }
+        }
+
         private double m_currentAzimuth = 0;
         public double currentAzimuth
         {
@@ -80,12 +135,19 @@ namespace TDSServer.GroundTask
             }
         }
 		
+		// next date to perform re-evaluation of status
+        private DateTime nextReevaluationDate;
+		
         public clsActivityMovement currentRegularActivity;
         public int currentStartWaypoint;
         public int currentEndWaypoint;
         public DPoint lastRoutePoint;
 
         public List<CollisionTime> Collisions = new List<CollisionTime>();
+
+        // behavioral triggers
+        public List<Trigger> triggers;
+
         //private Route m_Route;
         //public void SetRoute(Route route) 
         //{           
@@ -103,6 +165,8 @@ namespace TDSServer.GroundTask
         // incapacitation and death
         public event IncapacitationEventHandler incapacitationEventHandler;
         public event DeathEventHandler deathEventHandler;
+        // re-evaluation of status
+        public event ReevaluationEventHandler reEvaluationEventHandler;
 		// ---
 
         public clsGroundAtom(GameObject pGameObject)
@@ -113,6 +177,8 @@ namespace TDSServer.GroundTask
             m_healthStatus = new HealthStatus();
             lastRoutePoint = new DPoint();
             clearAllEventSubscriptions();
+
+            triggers = new List<Trigger>();
 			// -------------------------------------------------------
             //VH ChangeState(new ADMINISTRATIVE_STATE());
         }
@@ -162,6 +228,15 @@ namespace TDSServer.GroundTask
             }
         }
 
+        // YD: re-evaluate status
+        public void reEvaluateStatus()
+        {
+            if (reEvaluationEventHandler != null)
+            {
+                reEvaluationEventHandler(this, new clsGroundAtomEventArgs(this));
+            }
+        }
+
 		// YD: clear all event subscriptions
         public void clearAllEventSubscriptions()
         {
@@ -170,6 +245,18 @@ namespace TDSServer.GroundTask
             forcesHaveArrivedEventHandler = null;
             incapacitationEventHandler = null;
             deathEventHandler = null;
+        }
+
+        public void clearStageTransitionEventSubscriptions()
+        {
+            earthquakeStartedEventHandler = null;
+            earthquakeEndedEventHandler = null;
+            forcesHaveArrivedEventHandler = null;
+        }
+
+        public void clearReevaluationEventSubscription()
+        {
+            reEvaluationEventHandler = null;
         }
 
         internal void ExecuteState()
@@ -226,8 +313,23 @@ namespace TDSServer.GroundTask
         }
         internal void CheckCondition()
         {
+            // if it's time to re-evaluate, re-evaluate your status and the status of the environment and decide accordingly
+            if (nextReevaluationDate <= m_GameObject.Ex_clockDate)
+            {
+                reEvaluateStatus();
 
+                // schedule next re-evaluation.
+                reScheduleEvaluation();
+            }
         }
+
+        public void reScheduleEvaluation()
+        {
+            // Add some noise to reevaluation interval
+            nextReevaluationDate = m_GameObject.Ex_clockDate.AddMilliseconds(SECONDS_BETWEEN_REEVALUATION * 1000.0 * Util.random.NextDouble()
+                                                                            + 1000.0 * SECONDS_BETWEEN_REEVALUATION / 2);
+        }
+
         public void Move(int DeltaTime) //DeltaTime milliseconds
         {
             double DeltaTimeSec = DeltaTime * 0.001;
@@ -465,6 +567,8 @@ namespace TDSServer.GroundTask
             Y_Route = curr_Y;
             Offset_Azimuth = 0;
             Offset_Distance = 0;
+            currPosition.x = curr_X;
+            currPosition.y = curr_Y;
         }
 		// --------------------------------------------------------------------------------
 
@@ -492,9 +596,19 @@ namespace TDSServer.GroundTask
         {
             get { return true; }
         }
+
+        public double getSocialComparisonProbability()
+        {
+            return 0.75;
+        }
+
+        public double getSocialDistance()
+        {
+            return proxemics.socialSpace;
+        }
     }
 
-	// Yinon Douchan: An atom's sealth status
+	// Yinon Douchan: An atom's health status
     public class HealthStatus
     {
         public double injurySeverity;
@@ -516,4 +630,21 @@ namespace TDSServer.GroundTask
         }
     }
 	// ------------------------------------------------------------------
+
+    // Yinon Douchan: An atom's proxemics
+    public class Proxemics
+    {
+		// lower bounds of personal, social and public spaces.
+		// Anything closer than an atom's personal space is in its intimate space
+        public double personalSpace;
+        public double socialSpace;
+        public double publicSpace;
+
+        public Proxemics(double personalSpace, double socialSpace, double publicSpace)
+        {
+            this.personalSpace = personalSpace;
+            this.socialSpace = socialSpace;
+            this.publicSpace = publicSpace;
+        }
+    }
 }

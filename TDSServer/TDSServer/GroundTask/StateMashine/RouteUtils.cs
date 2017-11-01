@@ -30,7 +30,7 @@ namespace TDSServer.GroundTask.StateMashine
         }
 
         // create an activity, start it and return it
-        public static clsActivityMovement createActivityAndStart(clsGroundAtom atom, int speed, Route route)
+        public static clsActivityMovement createActivityAndStart(clsGroundAtom atom, double speed, Route route)
         {
             clsActivityMovement activity = createActivity(atom, speed, route);
             startActivity(activity);
@@ -39,7 +39,7 @@ namespace TDSServer.GroundTask.StateMashine
         }
 
         // create an activity with default fields
-        public static clsActivityMovement createActivity(clsGroundAtom atom, int speed, Route route)
+        public static clsActivityMovement createActivity(clsGroundAtom atom, double speed, Route route)
         {
             clsActivityMovement activity = new clsActivityMovement();
             activity.ActivityId = 0;

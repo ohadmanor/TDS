@@ -156,6 +156,19 @@ namespace TDSServer
 
             return exitPath;
         }
+
+        // find closest waypoint in the polygon to the given coordinates
+        public PolygonWaypoint findClosestWaypoint(double x, double y)
+        {
+            PolygonWaypoint closest = waypoints.ElementAt(0);
+            foreach (PolygonWaypoint w in waypoints) {
+                double distToClosest = TerrainService.MathEngine.CalcDistance(x, y, closest.x, closest.y);
+                double distToCurrentWaypoint = TerrainService.MathEngine.CalcDistance(x, y, w.x, w.y);
+                if (distToCurrentWaypoint < distToClosest) closest = w;
+            }
+
+            return closest;
+        }
 		
 		// helper method for the above
         private List<PolygonWaypoint> findExitPath(PolygonWaypoint waypoint, List<PolygonWaypoint> visitedWaypoints)

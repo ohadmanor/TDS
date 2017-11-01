@@ -15,9 +15,97 @@ namespace TDSServer.GroundTask.StateMashine
 		// YD: event handler for when earthquake started and in structure
         protected void earthquakeStartedInStructureEventHandler(object sender, EventArgs e)
         {
-			// exit the structure
             clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+
+            // there are no proxemics in non-normative conditions
+            refGroundAtom.collisionRadius = 2*clsGroundAtom.RADIUS;
+			
+			// better hurry up, the building might collapse
+            double panicSpeedMultiplier = (Util.random.NextDouble() + 1.5);
+            refGroundAtom.currentSpeed = panicSpeedMultiplier * refGroundAtom.baselineSpeed;
+
+            refGroundAtom.reEvaluationEventHandler += reevaluationAfterEarthquakeStartedInStructureEventHandler;
+
+            if (moveToSocialComparisonStateInStructureIfShould(refGroundAtom)) return;
+
+			// exit the structure
             refGroundAtom.ChangeState(new EXIT_STRUCTURE_STATE(Structure));
+        }
+
+        protected void earthquakeEndedInStructureEventHandler(object sender, EventArgs e)
+        {
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+
+            refGroundAtom.reEvaluationEventHandler += reevaluationAfterEarthquakeEndedInStructureEventHandler;
+
+            if (moveToSocialComparisonStateInStructureIfShould(refGroundAtom)) return;
+
+            // exit the structure
+            refGroundAtom.ChangeState(new EXIT_STRUCTURE_STATE(Structure));
+        }
+
+        protected void forcesHaveArrivedInStructureEventHandler(object sender, EventArgs e)
+        {
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+
+            refGroundAtom.currentSpeed = refGroundAtom.baselineSpeed;
+            refGroundAtom.reEvaluationEventHandler += reevaluationAfterForcesHaveArrivedInStructureEventHandler;
+
+            if (moveToSocialComparisonStateInStructureIfShould(refGroundAtom)) return;
+
+            // exit the structure
+            refGroundAtom.ChangeState(new EXIT_STRUCTURE_STATE(Structure));
+        }
+
+        protected void reevaluationAfterEarthquakeStartedInStructureEventHandler(object sender, EventArgs e)
+        {
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+
+            // check if stuck in mutual social comparison
+            if (refGroundAtom.currentState.GetType() == typeof(SOCIAL_COMPARISON_IN_STRUCTURE_STATE))
+            {
+                SOCIAL_COMPARISON_IN_STRUCTURE_STATE sc = (SOCIAL_COMPARISON_IN_STRUCTURE_STATE)refGroundAtom.currentState;
+                bool stuck = refGroundAtom.currentSpeed <= (float)sc.baselineSpeed / 5.0;
+                if (stuck)
+                {
+                    // don't stay in social comparison if stuck. The building is going to fall apart!
+                    refGroundAtom.ChangeState(new EXIT_STRUCTURE_STATE(Structure));
+                }
+            }
+        }
+
+        protected void reevaluationAfterEarthquakeEndedInStructureEventHandler(object sender, EventArgs e)
+        {
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+
+            // check if stuck in mutual social comparison
+            if (refGroundAtom.currentState.GetType() == typeof(SOCIAL_COMPARISON_IN_STRUCTURE_STATE))
+            {
+                SOCIAL_COMPARISON_IN_STRUCTURE_STATE sc = (SOCIAL_COMPARISON_IN_STRUCTURE_STATE)refGroundAtom.currentState;
+                bool stuck = refGroundAtom.currentSpeed <= (float)sc.baselineSpeed / 5.0;
+                if (stuck)
+                {
+                    // don't stay in social comparison if stuck. The building is going to fall apart!
+                    refGroundAtom.ChangeState(new EXIT_STRUCTURE_STATE(Structure));
+                }
+            }
+        }
+
+        protected void reevaluationAfterForcesHaveArrivedInStructureEventHandler(object sender, EventArgs e)
+        {
+            clsGroundAtom refGroundAtom = ((clsGroundAtomEventArgs)e).groundAtom;
+
+            // check if stuck in mutual social comparison
+            if (refGroundAtom.currentState.GetType() == typeof(SOCIAL_COMPARISON_IN_STRUCTURE_STATE))
+            {
+                SOCIAL_COMPARISON_IN_STRUCTURE_STATE sc = (SOCIAL_COMPARISON_IN_STRUCTURE_STATE)refGroundAtom.currentState;
+                bool stuck = refGroundAtom.currentSpeed <= (float)sc.baselineSpeed / 5.0;
+                if (stuck)
+                {
+                    // don't stay in social comparison if stuck. The building is going to fall apart!
+                    refGroundAtom.ChangeState(new EXIT_STRUCTURE_STATE(Structure));
+                }
+            }
         }
 
         public MOVEMENT_IN_STRUCTURE_STATE(clsPolygon _Structure)
@@ -29,8 +117,8 @@ namespace TDSServer.GroundTask.StateMashine
         {
 			// YD: subscribe to event handlers
             refGroundAtom.earthquakeStartedEventHandler += earthquakeStartedInStructureEventHandler;
-            refGroundAtom.earthquakeEndedEventHandler += earthquakeEndedDefaultEventHandler;
-            refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedDefaultEventHandler;
+            refGroundAtom.earthquakeEndedEventHandler += earthquakeEndedInStructureEventHandler;
+            refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedInStructureEventHandler;
             refGroundAtom.incapacitationEventHandler += incapacitationDefaultEventHandler;
             refGroundAtom.deathEventHandler += deathDefaultEventHandler;
             targetPosition = CalculateNextRandomPosition(5000, refGroundAtom.curr_X, refGroundAtom.curr_Y);
@@ -224,7 +312,7 @@ namespace TDSServer.GroundTask.StateMashine
 
             refGroundAtom.isCollision = false;
 
-            List<clsGroundAtom> colAtoms = refGroundAtom.m_GameObject.getQuadTreeByStructure(Structure).SearchEntities(newPosition.x, newPosition.y, 2 * clsGroundAtom.RADIUS, isPrecise: true);
+            List<clsGroundAtom> colAtoms = refGroundAtom.m_GameObject.getQuadTreeByStructure(Structure).SearchEntities(newPosition.x, newPosition.y, refGroundAtom.collisionRadius, isPrecise: true);
 
             foreach (clsGroundAtom atom in colAtoms)
             {
@@ -271,6 +359,30 @@ namespace TDSServer.GroundTask.StateMashine
             double headingDifference = Util.getAzimuthDifferenceDegrees(refGroundAtom.currentAzimuth, azimuthToTargetPosition);
             return (distanceFromTarget < WAYPOINT_TOLERANCE * dist) && (Math.Abs(headingDifference) < 90);
         }
+
+        // move to social comparison state if can and should. Return true if can and should and move, else return false
+        public bool moveToSocialComparisonStateInStructureIfShould(clsGroundAtom refGroundAtom)
+        {
+            double socialComparisonProbability = Util.random.NextDouble();
+
+            // draw probabilistically whether to compare or not
+            if (socialComparisonProbability <= refGroundAtom.getSocialComparisonProbability())
+            {
+                // do social comparison
+                clsGroundAtom mostSimilar = SocialComparison.findMostSimilarInStructure(refGroundAtom, Structure);
+
+                // check if there is someone similar to me
+                if (mostSimilar != null)
+                {
+                    refGroundAtom.ChangeState(new SOCIAL_COMPARISON_IN_STRUCTURE_STATE(Structure, mostSimilar));
+                    return true;
+                }
+
+                // if couldn't find someone similar in vicinity do not compare
+            }
+
+            return false;
+        }
     }
     class MoveInStructureSM
     {
@@ -291,8 +403,8 @@ namespace TDSServer.GroundTask.StateMashine
         {
 			// subscribe event handlers
             refGroundAtom.earthquakeStartedEventHandler += earthquakeStartedInStructureEventHandler;
-            refGroundAtom.earthquakeEndedEventHandler += earthquakeEndedDefaultEventHandler;
-            refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedDefaultEventHandler;
+            refGroundAtom.earthquakeEndedEventHandler += earthquakeEndedInStructureEventHandler;
+            refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedInStructureEventHandler;
             refGroundAtom.incapacitationEventHandler += incapacitationDefaultEventHandler;
             refGroundAtom.deathEventHandler += deathDefaultEventHandler;
 
@@ -398,7 +510,9 @@ namespace TDSServer.GroundTask.StateMashine
         public override void Enter(clsGroundAtom refGroundAtom)
         {
             refGroundAtom.clearAllEventSubscriptions();
-            refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedDefaultEventHandler;
+            refGroundAtom.earthquakeEndedEventHandler += earthquakeEndedInStructureEventHandler;
+            refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedInStructureEventHandler;
+            refGroundAtom.currentStructureWaypoint = Structure.waypointGraph.findClosestWaypoint(refGroundAtom.curr_X, refGroundAtom.curr_Y);
             exitWaypoints = Structure.waypointGraph.findExitPath(refGroundAtom.currentStructureWaypoint);
             PolygonWaypoint exitWaypoint = exitWaypoints[exitWaypoints.Count() - 1];
             exitEdgeNumber = exitWaypoint.edgeNum;
@@ -471,10 +585,106 @@ namespace TDSServer.GroundTask.StateMashine
                 TerrainService.Vector targetLocation = new TerrainService.Vector();
                 TerrainService.MathEngine.CalcProjectedLocationNew(refGroundAtom.curr_X, refGroundAtom.curr_Y, perpendicularAzimuth, distanceMeters, out targetLocation.x, out targetLocation.y);
 
-                clsActivityMovement goAwayActivity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
-                refGroundAtom.ChangeState(new GO_AWAY_FROM_BUILDING_STATE(goAwayActivity, targetLocation, Structure, exitEdgeNumber));
+                // decide according to earthquake status
+                if (!refGroundAtom.m_GameObject.forcesHaveArrived())
+                {
+                    // 
+                    refGroundAtom.clearStageTransitionEventSubscriptions();
+                    refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedDefaultEventHandler;
+                    refGroundAtom.earthquakeEndedEventHandler += earthquakeEndedDefaultEventHandler;
+                    clsActivityMovement goAwayActivity = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                    refGroundAtom.ChangeState(new GO_AWAY_FROM_BUILDING_STATE(goAwayActivity, targetLocation, Structure, exitEdgeNumber));
+                    return;
+                }
+                else
+                {
+                    refGroundAtom.clearStageTransitionEventSubscriptions();
+                    refGroundAtom.clearReevaluationEventSubscription();
+                    refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedDefaultEventHandler;
+                    refGroundAtom.earthquakeEndedEventHandler += earthquakeEndedDefaultEventHandler;
+                    refGroundAtom.reEvaluationEventHandler += reevaluationAfterForcesHaveArrivedEventHandler;
+                    clsActivityMovement barrierMovement = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                    refGroundAtom.resetMovementData();
+                    refGroundAtom.ChangeState(new GO_TO_POLICE_BARRIER_STATE(barrierMovement));
+                    return;
+                }
+            }
+        }
+    }
+
+    public class SOCIAL_COMPARISON_IN_STRUCTURE_STATE : MOVEMENT_IN_STRUCTURE_STATE
+    {
+        clsGroundAtom mostSimilar;
+        private double m_baselineSpeed;
+        public double baselineSpeed
+        {
+            get { return m_baselineSpeed; }
+            set { m_baselineSpeed = value; }
+        }
+
+        public SOCIAL_COMPARISON_IN_STRUCTURE_STATE(clsPolygon _Structure, clsGroundAtom mostSimilar)
+            : base(_Structure)
+        {
+            this.mostSimilar = mostSimilar;
+        }
+
+        public override void Enter(clsGroundAtom refGroundAtom)
+        {
+            m_baselineSpeed = refGroundAtom.currentSpeed;
+            refGroundAtom.earthquakeEndedEventHandler += earthquakeEndedInStructureEventHandler;
+            targetPosition = new TerrainService.Vector(mostSimilar.x, mostSimilar.y, 0);
+        }
+
+        public override void Execute(clsGroundAtom refGroundAtom)
+        {
+            targetPosition.x = mostSimilar.curr_X;
+            targetPosition.y = mostSimilar.curr_Y;
+
+            // minimize differences
+            SocialComparison.correctBehaviorToMostSimilar(refGroundAtom, mostSimilar, m_baselineSpeed);
+
+            TerrainService.shPoint[] pnts = Structure.Points.ToArray();
+
+            // if most similar leads to outside of structure do social comparison outside of structure
+            bool mostSimilarExitedStructure = !TerrainService.GeometryHelper.GeometryMath.isPointInPolygon(mostSimilar.curr_X, mostSimilar.curr_Y, ref pnts);
+            if (mostSimilarExitedStructure)
+            {
+                refGroundAtom.clearStageTransitionEventSubscriptions();
+                refGroundAtom.earthquakeStartedEventHandler += earthquakeStartedDefaultEventHandler;
+                refGroundAtom.earthquakeEndedEventHandler += earthquakeEndedDefaultEventHandler;
+                refGroundAtom.forcesHaveArrivedEventHandler += forcesHaveArrivedDefaultEventHandler;
+
+                clsActivityMovement moveToMostSimilar = RouteUtils.createActivityAndStart(refGroundAtom, (int)refGroundAtom.currentSpeed, null);
+                refGroundAtom.resetMovementData();
+
+                refGroundAtom.ChangeState(new SOCIAL_COMPARISON_STATE(moveToMostSimilar, mostSimilar));
+
+                // re-assign reevaluation handler. It should not be the same outside of a structure.
+                switch (refGroundAtom.m_GameObject.simulationStage)
+                {
+                    case GameObject.SimulationStage.STAGE_2:
+                        refGroundAtom.reEvaluationEventHandler += reevaluationAfterEarthquakeStartedEventHandler;
+                        break;
+                    case GameObject.SimulationStage.STAGE_3:
+                        refGroundAtom.reEvaluationEventHandler += reevaluationAfterEarthquakeEndedEventHandler;
+                        break;
+                    case GameObject.SimulationStage.STAGE_4:
+                        refGroundAtom.reEvaluationEventHandler += reevaluationAfterForcesHaveArrivedEventHandler;
+                        break;
+                    default:
+                        refGroundAtom.reEvaluationEventHandler += null;
+                        break;
+                }
+
                 return;
             }
+
+            base.Execute(refGroundAtom);
+        }
+
+        public override void Exit(clsGroundAtom refGroundAtom)
+        {
+            refGroundAtom.currentSpeed = m_baselineSpeed;
         }
     }
 }

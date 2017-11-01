@@ -113,56 +113,56 @@ namespace TDSClient
             SelectMenu.Items.Add(mCoordinates);
             System.Windows.Application.Current.MainWindow.ContextMenu = SelectMenu;
 
-            //if (minDistAtom != null && minDistance < SearchRadius)
-            // {
-            //    //Create PopUP menu
-            //     if (minDistAtom.AtomClass == "TDSServer.GroundTask.clsGroundAtom")
-            //     {
+            if (minDistAtom != null && minDistance < SearchRadius)
+             {
+                //Create PopUP menu
+                 if (minDistAtom.AtomClass == "TDSServer.GroundTask.clsGroundAtom")
+                 {
 
-            //         foreach (structTransportCommonProperty Tr in VMMainViewModel.Instance.colGroundAtoms.Values)
-            //         {
-            //             double  Distance = TerrainService.MathEngine.CalcDistanceForPerformance(Tr.X, Tr.Y, minDistAtom.X, minDistAtom.Y);
-            //             if (Distance <= SearchNeiborRadiuse)
-            //             {
-            //                 NeighborList.Add(Tr);
+                     foreach (structTransportCommonProperty Tr in VMMainViewModel.Instance.colGroundAtoms.Values)
+                     {
+                         double  Distance = TerrainService.MathEngine.CalcDistanceForPerformance(Tr.X, Tr.Y, minDistAtom.X, minDistAtom.Y);
+                         if (Distance <= SearchNeiborRadiuse)
+                         {
+                             NeighborList.Add(Tr);
 
-            //             }
-            //         }
+                         }
+                     }
 
-            //         if (NeighborList.Count==1)
-            //         {
-            //             ShowGroundSelectAtomMenu(null, minDistAtom);
-            //         }
-            //         else
-            //         {
-            //           // System.Windows.Controls.ContextMenu SelectMenu = new System.Windows.Controls.ContextMenu();
-            //             SelectMenu = new System.Windows.Controls.ContextMenu();
+                     if (NeighborList.Count==1)
+                     {
+                         ShowGroundSelectAtomMenu(null, minDistAtom);
+                     }
+                     else
+                     {
+                       // System.Windows.Controls.ContextMenu SelectMenu = new System.Windows.Controls.ContextMenu();
+                         SelectMenu = new System.Windows.Controls.ContextMenu();
 
-            //            SelectMenu.Style = null;
+                        SelectMenu.Style = null;
                        
-            //             for (int i = 0; i < NeighborList.Count; i++)
-            //             {
-            //                // System.Windows.Controls.MenuItem mSelectGroundAtom = new System.Windows.Controls.MenuItem();
-            //                // mSelectGroundAtom.Style = null;
+                         for (int i = 0; i < NeighborList.Count; i++)
+                         {
+                            // System.Windows.Controls.MenuItem mSelectGroundAtom = new System.Windows.Controls.MenuItem();
+                            // mSelectGroundAtom.Style = null;
 
-            //                 System.Windows.Controls.MenuItem mSelectGroundAtom = new System.Windows.Controls.MenuItem();
-            //                 mSelectGroundAtom.Header =  NeighborList[i].AtomName;
-            //                 mSelectGroundAtom.Tag = NeighborList[i];
-            //                 mSelectGroundAtom.Focusable = false;
-            //                 mSelectGroundAtom.Click += miName_Click;
-            //                 SelectMenu.Items.Add(mSelectGroundAtom);
-            //             }
+                             System.Windows.Controls.MenuItem mSelectGroundAtom = new System.Windows.Controls.MenuItem();
+                             mSelectGroundAtom.Header =  NeighborList[i].AtomName;
+                             mSelectGroundAtom.Tag = NeighborList[i];
+                             mSelectGroundAtom.Focusable = false;
+                             mSelectGroundAtom.Click += miName_Click;
+                             SelectMenu.Items.Add(mSelectGroundAtom);
+                         }
 
-            //             System.Windows.Application.Current.MainWindow.ContextMenu = SelectMenu;
-            //             return;
-            //         }
-
-
+                         System.Windows.Application.Current.MainWindow.ContextMenu = SelectMenu;
+                         return;
+                     }
 
 
 
-            //     }
-            // }
+
+
+                 }
+             }
            
         }
 
